@@ -1,8 +1,8 @@
+const appInsights = require('applicationinsights');
 const scheduler = require('./scheduler.js');
-const tasks = require('./tasks.js');
+const tasks = require('./tasks-wrapper.js');
 
 let jobs =  [];
-
 
 let loadEnvVariables = () => {
   let requiredEnv = [

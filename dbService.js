@@ -31,6 +31,8 @@ var dbHandler = {
                 CREATE TABLE IF NOT EXISTS tblTasks(
                 id int primary key,
                 name varchar(50) not null,
+                starttime DATETIME,
+                elapsedSeconds BIGINT,
                 status varchar(50) not null
             ) ENGINE=InnoDB`;
             await con.query(createTable);
