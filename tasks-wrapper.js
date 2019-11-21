@@ -1,4 +1,4 @@
-let db = require('./dbService.js');
+let db = require('./db/dbService.js');
 let dataIdentifier = require('./tasks/data-identifier.js');
 let dataTransfer = require('./tasks/data-transfer.js');
 let moment = require('moment');

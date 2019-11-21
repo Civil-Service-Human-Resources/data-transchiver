@@ -47,7 +47,7 @@ var dbHandler = {
         try{
             var con = await dbHandler.getConnection();
             await con.connect();
-            await con.query('USE db_archiver; REPLACE INTO tblTasks(id, name, status) VALUES ?', [_records]);
+            await con.query('REPLACE INTO db_archiver.tblTasks(id, name, status) VALUES ?', [_records]);
             await con.commit();
         }catch(err){
             throw err;
