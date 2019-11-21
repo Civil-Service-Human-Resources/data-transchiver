@@ -22,15 +22,21 @@ You should have the following installed in the environment you're planning to te
 3. export the required environment variables locally as mentioned below
 
 ```export MYSQL_SERVER_HOST=<hostname>```
+
 ```export MYSQL_DB_USER=<mysql_user>```
+
 ```export MYSQL_DB_PWD=<mysql_user_password>```
+
 ```export DATA_XFR_JOB_SCHEDULE=<cron_like_schedule>```
 
 Example:
 
 ```export MYSQL_SERVER_HOST=localhost```
+
 ```export MYSQL_DB_USER=root```
+
 ```export MYSQL_DB_PWD=password```
+
 ```export DATA_XFR_JOB_SCHEDULE="5 * * * * *"``` 
 
 4. run the app as below
