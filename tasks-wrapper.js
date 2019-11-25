@@ -9,16 +9,16 @@ const _tasks = [
 ];
 
 const updateTable = "UPDATE db_archiver.tblTasks SET ";
-const selectFromTable = "SELECT name, status from db_archiver.tblTasks ";
+const selectFromTasksTable = "SELECT name, status from db_archiver.tblTasks ";
 
-let Tasks = {
+const Tasks = {
     printSchedule: (_schedule) => {
         console.log("\n\ntask scheduled at " + _schedule + " and running at " + new Date());
     },
     reset: async () => {
         await db.createSchema();
         await db.insertRecords(_tasks);
-        Tasks.queryAll();
+        await Tasks.queryAll();
     },
     prepare: async (_taskName) => {
         await Tasks.reset();
@@ -26,13 +26,13 @@ let Tasks = {
     },
     queryAll: async () => {
         let results = await db.queryRecords(
-            selectFromTable
+            selectFromTasksTable
         );
         console.table([results[0], results[1]]);
     },
     queryStatus: async (_taskName) => {
         return await db.queryRecords(
-            selectFromTable + "WHERE name = '" + _taskName + "'"
+            selectFromTasksTable + "WHERE name = '" + _taskName + "'"
         );
     },
     updateStatus: async (_taskName, _status) => {
@@ -43,13 +43,16 @@ let Tasks = {
     },
     updateElapsedTime: async (_taskName, _seconds) => {
         await db.queryRecords(
-            updateTable + "elapsedSeconds = " + _seconds + " WHERE name = '" + _taskName + "'"
+            updateTable + "elapsed_seconds = " + _seconds + " WHERE name = '" + _taskName + "'"
         );
     },
     updateStartTime: async (_taskName, _startedAt) => {
         await db.queryRecords(
-            updateTable + "starttime = '" + _startedAt + "' WHERE name = '" + _taskName + "'"
+            updateTable + "start_time = '" + _startedAt + "' WHERE name = '" + _taskName + "'"
         );
+    },
+    getTime: () => {
+        return moment().format('YYYY-MM-DD HH:mm:ss');
     },
     DataIdentifier: async (_schedule, _callback) => {
         const task_name = 'DataIdentifier';
@@ -59,7 +62,7 @@ let Tasks = {
             await Tasks.updateStatus(task_name, 'RUNNING');
 
             // do some work
-            await Tasks.updateStartTime(task_name, moment().format('YYYY-MM-DD HH:mm:ss'));
+            await Tasks.updateStartTime(task_name, Tasks.getTime());
             let timeElapsed = await dataIdentifier.execute();
 
             await Tasks.updateStatus(task_name, 'COMPLETED');
@@ -70,13 +73,12 @@ let Tasks = {
     },
     DataTransfer: async (_schedule, _callback) => {
         const task_name = 'DataTransfer';
-        // Tasks.printSchedule(_schedule);
 
         if ( await Tasks.isTaskReady(task_name) ){
             await Tasks.updateStatus(task_name, 'RUNNING');
 
             // do some work
-            await Tasks.updateStartTime(task_name, moment().format('YYYY-MM-DD HH:mm:ss'));
+            await Tasks.updateStartTime(task_name, Tasks.getTime());
             let timeElapsed = await dataTransfer.execute();
 
             await Tasks.updateStatus(task_name, 'COMPLETED');
