@@ -1,10 +1,10 @@
 const db = require('../db/dbService.js');
 
-const selectUsersFromLearnerRecords = `select distinct(user_id), last_updated 
-from db_archiver.course_record 
+const selectUsersFromLearnerRecords = `select distinct(user_id) user_id, max(updated_at) updated_at 
+from learner_record.module_record 
 where user_id <> ''
 group by user_id
-order by user_id asc, last_updated desc`;
+order by updated_at desc`;
 
 let dataIdentifier = {
     queryUsersFromLearnerRecords: async () => {
@@ -19,15 +19,17 @@ let dataIdentifier = {
         console.log("DataIdentifier task is running.....");
         let startTime = process.hrtime();
 
-        let results = await dataIdentifier.queryUsersFromLearnerRecords();
-        if ( null !== results ){
-            results.forEach(async record => {
+        let records = await dataIdentifier.queryUsersFromLearnerRecords();
+        if ( null !== records ){
+            for( const record of records) {
                 await dataIdentifier.populateCandidateRecords([ 
-                    [record.user_id,  record.last_updated]
+                    [record.user_id,  record.updated_at]
                 ]);
-            })
+            }
         }
-        return process.hrtime(startTime);
+        endTime = process.hrtime(startTime);
+        endTimeMS = endTime[0] + "." + endTime[1];
+        return endTimeMS;
     }
 }
 

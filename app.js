@@ -6,11 +6,22 @@ let jobs =  [];
 
 let loadEnvVariables = () => {
   let requiredEnv = [
-    'MYSQL_SERVER_HOST',
-    'MYSQL_DB_USER',
-    'MYSQL_DB_PWD',
-    'DATA_XFR_JOB_SCHEDULE'
+    'TDS_MYSQL_PROC_REGISTRY_HOST',
+    'TDS_MYSQL_PROC_REGISTRY_DB_USER',
+    'TDS_MYSQL_PROC_REGISTRY_DB_PWD',
+
+    'TDS_MYSQL_LEARNER_RECORD_DB_HOST',
+    'TDS_MYSQL_LEARNER_RECORD_DB_USER',
+    'TDS_MYSQL_LEARNER_RECORD_DB_PWD',
+    
+    'TDS_MYSQL_HISTORY_DB_HOST',
+    'TDS_MYSQL_HISTORY_DB_USER',
+    'TDS_MYSQL_HISTORY_DB_PWD',
+
+    'COSMOS_SRC_CONNECTION_STRING',
+    'DATA_XFR_JOB_SCHEDULE',
   ];
+
   let unsetEnv = requiredEnv.filter((env) => !(typeof process.env[env] !== 'undefined'));
 
   if (unsetEnv.length > 0) {

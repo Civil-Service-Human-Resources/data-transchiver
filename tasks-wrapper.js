@@ -8,8 +8,8 @@ const _tasks = [
     [2, 'DataTransfer', 'NOT_READY']
 ];
 
-const updateTable = "UPDATE db_archiver.tblTasks SET ";
-const selectFromTasksTable = "SELECT name, status from db_archiver.tblTasks ";
+const updateTasksTable     = "UPDATE db_archiver.tasks_registry SET ";
+const selectFromTasksTable = "SELECT name, status from db_archiver.tasks_registry ";
 
 const Tasks = {
     printSchedule: (_schedule) => {
@@ -37,18 +37,17 @@ const Tasks = {
     },
     updateStatus: async (_taskName, _status) => {
         await db.queryRecords(
-            updateTable + "status = '" + _status + "' WHERE name = '" + _taskName + "'"
+            updateTasksTable + "status = '" + _status + "' WHERE name = '" + _taskName + "'"
         );
-        await Tasks.queryAll();
     },
     updateElapsedTime: async (_taskName, _seconds) => {
         await db.queryRecords(
-            updateTable + "elapsed_seconds = " + _seconds + " WHERE name = '" + _taskName + "'"
+            updateTasksTable + "elapsed_seconds = " + _seconds + " WHERE name = '" + _taskName + "'"
         );
     },
     updateStartTime: async (_taskName, _startedAt) => {
         await db.queryRecords(
-            updateTable + "start_time = '" + _startedAt + "' WHERE name = '" + _taskName + "'"
+            updateTasksTable + "start_time = '" + _startedAt + "' WHERE name = '" + _taskName + "'"
         );
     },
     getTime: () => {
@@ -56,17 +55,15 @@ const Tasks = {
     },
     DataIdentifier: async (_schedule, _callback) => {
         const task_name = 'DataIdentifier';
-        // Tasks.printSchedule(_schedule);
 
         if ( await Tasks.isTaskReady(task_name) ){
             await Tasks.updateStatus(task_name, 'RUNNING');
 
-            // do some work
             await Tasks.updateStartTime(task_name, Tasks.getTime());
             let timeElapsed = await dataIdentifier.execute();
 
             await Tasks.updateStatus(task_name, 'COMPLETED');
-            await Tasks.updateElapsedTime(task_name, timeElapsed[0]);
+            await Tasks.updateElapsedTime(task_name, timeElapsed);
             await Tasks.updateStatus("DataTransfer", 'READY');
         }
         _callback(task_name);
@@ -77,12 +74,11 @@ const Tasks = {
         if ( await Tasks.isTaskReady(task_name) ){
             await Tasks.updateStatus(task_name, 'RUNNING');
 
-            // do some work
             await Tasks.updateStartTime(task_name, Tasks.getTime());
             let timeElapsed = await dataTransfer.execute();
 
             await Tasks.updateStatus(task_name, 'COMPLETED');
-            await Tasks.updateElapsedTime(task_name, timeElapsed[0]);
+            await Tasks.updateElapsedTime(task_name, timeElapsed);
         }
         _callback(task_name);
     },
