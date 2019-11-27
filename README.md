@@ -21,23 +21,22 @@ You should have the following installed in the environment you're planning to te
 
 3. export the required environment variables locally as mentioned below
 
-```export MYSQL_SERVER_HOST=<hostname>```
+Example
 
-```export MYSQL_DB_USER=<mysql_user>```
+``` ENV TDS_MYSQL_PROC_REGISTRY_HOST```
+``` ENV TDS_MYSQL_PROC_REGISTRY_DB_USER```
+``` ENV TDS_MYSQL_PROC_REGISTRY_DB_PWD```
 
-```export MYSQL_DB_PWD=<mysql_user_password>```
+``` ENV TDS_MYSQL_LEARNER_RECORD_DB_HOST```
+``` ENV TDS_MYSQL_LEARNER_RECORD_DB_USER```
+``` ENV TDS_MYSQL_LEARNER_RECORD_DB_PWD```
+    
+``` ENV TDS_MYSQL_HISTORY_DB_HOST```
+``` ENV TDS_MYSQL_HISTORY_DB_USER```
+``` ENV TDS_MYSQL_HISTORY_DB_PWD```
 
-```export DATA_XFR_JOB_SCHEDULE=<cron_like_schedule>```
-
-Example:
-
-```export MYSQL_SERVER_HOST=localhost```
-
-```export MYSQL_DB_USER=root```
-
-```export MYSQL_DB_PWD=password```
-
-```export DATA_XFR_JOB_SCHEDULE="5 * * * * *"``` 
+``` ENV COSMOS_SRC_CONNECTION_STRING```
+``` ENV DATA_XFR_JOB_SCHEDULE```
 
 4. run the app as below
 
