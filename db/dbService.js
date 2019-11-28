@@ -27,6 +27,12 @@ const cosmos_src_connection_string  = process.env.COSMOS_SRC_CONNECTION_STRING +
 const updateCandidateTable = "UPDATE db_archiver.candidate_record SET ";
 
 var dbHandler = {
+    printConfigs: () => {
+        console.log("config_mysql_lr            => " + JSON.stringify(config_mysql_lr, null, 2));
+        console.log("config_mysql_target        => " + JSON.stringify(config_mysql_target, null, 2));
+        console.log("config_mysql_registry      => " + JSON.stringify(config_mysql_registry, null, 2));
+        console.log("MONGODB_CONNECTION_OPTIONS => " + JSON.stringify(MONGODB_CONNECTION_OPTIONS, null, 2));
+    },
     getConnection: async () => {
         try{
             let con = dbUtil.getMysql(config_mysql_registry);

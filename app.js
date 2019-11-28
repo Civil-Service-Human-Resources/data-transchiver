@@ -69,6 +69,7 @@ app.get('/', (req, res) => {
 app.listen(APP_HTTP_PORT, () => console.log(
   APP_NAME + " is listening on port " + APP_HTTP_PORT)
 );
+
 loadEnvVariables()
 startSchedule();
 
