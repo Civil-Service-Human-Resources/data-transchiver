@@ -1,6 +1,6 @@
 @Library('lpg-jenkins-library')_
 
-javaIntegrationPipeline {
+nodeIntegrationPipeline {
     dockerRepository = 'data-transchriver'
     environment = 'integration'
     terraformModuleName = 'data-transchriver'
