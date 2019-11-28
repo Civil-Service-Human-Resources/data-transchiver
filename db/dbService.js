@@ -180,14 +180,17 @@ var dbHandler = {
             await dbHandler.disconnect(con);
         }
     },
-    queryFromCosmos: async (user_id) => {
+    queryFromCosmos: async (user) => {
         let db, client;
         try {
             client = await MongoClient.connect(cosmos_src_connection_string,
                 { useUnifiedTopology: true, useNewUrlParser: true });
             db = client.db("admin");
             return await db.collection("statements")
-                .find({"statement.actor.account.name": user_id})
+                .find({
+                    "statement.actor.account.name": user.user_id, 
+                    "statement.timestamp": { $lt: user.updated_at }
+                })
                 .toArray();
         }catch(err){
             throw err

@@ -2,7 +2,7 @@ const db = require('../db/dbService.js');
 const moment = require('moment');
 const md5 = require('md5');
 
-const selectCandidateRecords = `select distinct(user_id) user_id, max(updated_at) updated_at 
+const selectCandidateRecords = `select distinct(user_id) user_id, DATE_FORMAT(max(updated_at), '%Y-%m-%dT%TZ') updated_at 
 from db_archiver.candidate_record 
 where user_id <> ''
 group by user_id
@@ -64,7 +64,7 @@ let dataTransfer = {
             statementsCopied = 0;
             statementsDeleted = 0;
 
-            docs = await db.queryFromCosmos(user.user_id);
+            docs = await db.queryFromCosmos(user);
 
             if ( null !== docs && docs.length > 0){
                 statementsFound = docs.length;
