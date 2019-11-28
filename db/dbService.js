@@ -31,7 +31,7 @@ var dbHandler = {
         console.log("config_mysql_lr            => " + JSON.stringify(config_mysql_lr, null, 2));
         console.log("config_mysql_target        => " + JSON.stringify(config_mysql_target, null, 2));
         console.log("config_mysql_registry      => " + JSON.stringify(config_mysql_registry, null, 2));
-        console.log("MONGODB_CONNECTION_OPTIONS => " + JSON.stringify(MONGODB_CONNECTION_OPTIONS, null, 2));
+        console.log("MONGODB_CONNECTION_OPTIONS => " + JSON.stringify(cosmos_src_connection_string, null, 2));
     },
     getConnection: async () => {
         try{
