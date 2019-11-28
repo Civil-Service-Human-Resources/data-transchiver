@@ -6,19 +6,28 @@ const config_mysql_lr = {
     host     : process.env.TDS_MYSQL_LEARNER_RECORD_DB_HOST,
     user     : process.env.TDS_MYSQL_LEARNER_RECORD_DB_USER,
     password : process.env.TDS_MYSQL_LEARNER_RECORD_DB_PWD,
-    multipleStatements: true
+    multipleStatements: true,
+    ssl: {
+        rejectUnauthorized: false
+    }
 };
 const config_mysql_target = {
     host     : process.env.TDS_MYSQL_HISTORY_DB_HOST,
     user     : process.env.TDS_MYSQL_HISTORY_DB_USER,
     password : process.env.TDS_MYSQL_HISTORY_DB_PWD,
-    multipleStatements: true
+    multipleStatements: true,
+    ssl: {
+        rejectUnauthorized: false
+    }
 };
 const config_mysql_registry = {
     host     : process.env.TDS_MYSQL_PROC_REGISTRY_HOST,
     user     : process.env.TDS_MYSQL_PROC_REGISTRY_DB_USER,
     password : process.env.TDS_MYSQL_PROC_REGISTRY_DB_PWD,
-    multipleStatements: true
+    multipleStatements: true,
+    ssl: {
+        rejectUnauthorized: false
+    }
 };
 
 const MONGODB_CONNECTION_OPTIONS = "/&retrywrites=false&keepAlive=true&poolSize=10&autoReconnect=true&socketTimeoutMS=60000&connectTimeoutMS=5000";
