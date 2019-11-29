@@ -11,6 +11,7 @@ order by updated_at desc`;
 const _COMPLETED_ = "COMPLETED";
 const _ERROR_ = "ERROR";
 const _SKIPPED_ = "SKIPPED";
+const DELETE_BATCH_SIZE = 100;
 
 let dataTransfer = {
     getCandidates: async () => {
@@ -46,12 +47,21 @@ let dataTransfer = {
         return newDocs;
     },
     deleteFromSource: async (docs) => {
-        let deleted = 0;
-        let docs_to_delete = dataTransfer.prepareForDelete(docs);
-        let result = await db.deleteFromCosmos(docs_to_delete);
-        if (null != result && result.deletedCount > 0){
-            deleted = result.deletedCount;
+        const BATCH_SIZE = DELETE_BATCH_SIZE;
+        documents_count = docs.length;
+
+        var i, j, deleted = 0;
+        for (i=0, j=documents_count; i<j; i+=BATCH_SIZE ){
+
+            let docs_chunck = docs.slice(i, i + BATCH_SIZE);
+            
+            let docs_to_delete = dataTransfer.prepareForDelete(docs_chunck);
+            let result = await db.deleteFromCosmos(docs_to_delete);
+            if (null !== result && result.deletedCount > 0){
+                deleted += result.deletedCount;
+            }
         }
+
         return deleted;
     },
     doTransfer: async (users) => {
