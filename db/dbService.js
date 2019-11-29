@@ -87,6 +87,7 @@ var dbHandler = {
             await con.connect();
             var createTable = `CREATE SCHEMA IF NOT EXISTS db_archiver;
                 USE db_archiver;
+                DROP TABLE IF EXISTS tasks_registry;
                 CREATE TABLE IF NOT EXISTS tasks_registry(
                 id int primary key,
                 name varchar(50) not null,
@@ -96,12 +97,14 @@ var dbHandler = {
             ) ENGINE=InnoDB`;
             await con.query(createTable);
             createTable = `USE db_archiver;
+                DROP TABLE IF EXISTS candidate_record;
                 CREATE TABLE IF NOT EXISTS candidate_record(
                 user_id varchar(50) primary key,
                 updated_at DATETIME,
                 copy_status varchar(50),
                 delete_status varchar(50),
-                records_transferred BIGINT,
+                copied_count BIGINT,
+                deleted_count BIGINT,
                 time_completed DATETIME
             ) ENGINE=InnoDB`;
             await con.query(createTable);
@@ -158,9 +161,14 @@ var dbHandler = {
             updateCandidateTable + "delete_status = '" + _status + "' WHERE user_id = '" + _userId + "'"
         );
     },
-    updateNumOfRecords: async (_userId, numRecords) => {
+    updateNumOfRecordsCopied: async (_userId, numRecords) => {
         await dbHandler.queryRecords(
-            updateCandidateTable + "records_transferred = " + numRecords + " WHERE user_id = '" + _userId + "'"
+            updateCandidateTable + "copied_count = " + numRecords + " WHERE user_id = '" + _userId + "'"
+        );
+    },
+    updateNumOfRecordsDeleted: async (_userId, numRecords) => {
+        await dbHandler.queryRecords(
+            updateCandidateTable + "deleted_count = " + numRecords + " WHERE user_id = '" + _userId + "'"
         );
     },
     updateTranferTime: async (_userId, completedAt) => {
@@ -223,7 +231,7 @@ var dbHandler = {
             var con = await dbHandler.getConnectionToTarget();
             await con.connect();
             var result = await con.query(
-                'INSERT IGNORE INTO db_archiver.statements_history(statement_hash, user_id, inserted_date, statement_date, statement) VALUES ?', 
+                'REPLACE INTO db_archiver.statements_history(statement_hash, user_id, inserted_date, statement_date, statement) VALUES ?', 
                 [_records]
             );
             await con.commit();

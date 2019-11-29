@@ -21,7 +21,7 @@ const Tasks = {
         await Tasks.queryAll();
     },
     prepare: async (_taskName) => {
-        db.printConfigs();
+        // db.printConfigs();
         await Tasks.reset();
         await Tasks.updateStatus(_taskName, 'READY');
     },

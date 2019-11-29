@@ -8,6 +8,10 @@ where user_id <> ''
 group by user_id
 order by updated_at desc`;
 
+const _COMPLETED_ = "COMPLETED";
+const _ERROR_ = "ERROR";
+const _SKIPPED_ = "SKIPPED";
+
 let dataTransfer = {
     getCandidates: async () => {
         let results = await db.queryRecords(
@@ -45,7 +49,7 @@ let dataTransfer = {
         let deleted = 0;
         let docs_to_delete = dataTransfer.prepareForDelete(docs);
         let result = await db.deleteFromCosmos(docs_to_delete);
-        if (null != result){
+        if (null != result && result.deletedCount > 0){
             deleted = result.deletedCount;
         }
         return deleted;
@@ -69,25 +73,40 @@ let dataTransfer = {
             if ( null !== docs && docs.length > 0){
                 statementsFound = docs.length;
                 statementsFound_total += statementsFound;
+                
                 let docs_to_copy = dataTransfer.prepareForCopy(docs);
                 let result = await db.copyToTargetMysql(docs_to_copy);
-                if (null != result){
+
+                if (null !== result && result.affectedRows > 0){
                     statementsCopied = result.affectedRows;
                     statementsCopied_total += statementsCopied;
                 }
-            }
-            if ( statementsFound === statementsCopied ){
-                await db.updateCopyStatus(user.user_id, 'COMPLETED');
+                await db.updateNumOfRecordsCopied(user.user_id, statementsCopied);
+            
+                if ( statementsCopied >= statementsFound ){
+                    await db.updateCopyStatus(user.user_id, _COMPLETED_);
 
-                statementsDeleted += await dataTransfer.deleteFromSource(docs);
-                statementsDeleted_total += statementsDeleted;
-                
-                if ( statementsDeleted === statementsCopied){
-                    await db.updateDeleteStatus(user.user_id, 'COMPLETED');
-                    await db.updateNumOfRecords(user.user_id, statementsDeleted);
-                    await db.updateTranferTime(user.user_id, moment().format('YYYY-MM-DD HH:mm:ss'));
+                    statementsDeleted += await dataTransfer.deleteFromSource(docs);
+                    statementsDeleted_total += statementsDeleted;
+                    await db.updateNumOfRecordsDeleted(user.user_id, statementsDeleted);
+
+                    if ( statementsDeleted === statementsFound ){
+                        await db.updateDeleteStatus(user.user_id, _COMPLETED_);
+                    }else{
+                        await db.updateDeleteStatus(user.user_id, _ERROR_);
+                    }
+                }else{
+                    await db.updateCopyStatus(user.user_id, _ERROR_);
+                    await db.updateDeleteStatus(user.user_id, _SKIPPED_);
                 }
+            }else{
+                await db.updateCopyStatus(user.user_id, _SKIPPED_);
+                await db.updateDeleteStatus(user.user_id, _SKIPPED_);
             }
+            await db.updateNumOfRecordsCopied(user.user_id, statementsCopied);
+            await db.updateNumOfRecordsDeleted(user.user_id, statementsDeleted);
+
+            await db.updateTranferTime(user.user_id, moment().format('YYYY-MM-DD HH:mm:ss'));
         }
         return [statementsFound_total, statementsCopied_total, statementsDeleted_total];
     },
@@ -121,7 +140,7 @@ let dataTransfer = {
             [docsFound, docsCopied, docsDeleted] = await dataTransfer.doTransfer(users);
 
             if (docsCopied && docsCopied > 0){
-                if ( docsCopied !== docsDeleted ){
+                if ( docsCopied < docsDeleted ){
                     isTransferSuccessful = false;
                 }
             }
