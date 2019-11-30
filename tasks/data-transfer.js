@@ -136,12 +136,12 @@ let dataTransfer = {
     printJobStatus: (
         usersCount, docsFound, docsCopied, docsReplaced, docsDeleted, 
         transferStarted, isTransferSuccessful) => {
-        console.log("learners FOUND       : " + ((null !== usersCount   && usersCount   > 0)? usersCount: 0));
-        console.log("statements FOUND     : " + ((null !== docsFound    && docsFound    > 0)? docsFound:  0));
-        console.log("statements COPIED    : " + ((null !== docsCopied   && docsCopied   > 0)? docsCopied: 0));
-        console.log("statements REPLACED  : " + ((null !== docsReplaced && docsReplaced > 0)? docsReplaced: 0));
-        console.log("statements DELETED   : " + ((null !== docsDeleted  && docsDeleted  > 0)? docsDeleted:0));
-        console.log("Transfer status      : " + (
+        console.log("learner records FOUND : " + ((null !== usersCount   && usersCount   > 0)? usersCount: 0));
+        console.log("statements FOUND      : " + ((null !== docsFound    && docsFound    > 0)? docsFound:  0));
+        console.log("statements COPIED     : " + ((null !== docsCopied   && docsCopied   > 0)? docsCopied: 0));
+        console.log("statements REPLACED   : " + ((null !== docsReplaced && docsReplaced > 0)? docsReplaced: 0));
+        console.log("statements DELETED    : " + ((null !== docsDeleted  && docsDeleted  > 0)? docsDeleted:0));
+        console.log("Transfer status       : " + (
             (transferStarted && isTransferSuccessful || !transferStarted? "Success" : "Failed")
         ));
     },
