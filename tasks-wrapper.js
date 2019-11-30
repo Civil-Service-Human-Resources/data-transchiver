@@ -85,7 +85,7 @@ const Tasks = {
     },
     isTaskReady: async (_taskName) => {
         let results = await Tasks.queryStatus(_taskName);
-        if ( results[0].status === "READY" ){
+        if ( null !== results && results[0].status === "READY" ){
             return true;
         }
         return false;

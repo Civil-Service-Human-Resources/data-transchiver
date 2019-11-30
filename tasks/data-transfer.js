@@ -72,11 +72,13 @@ let dataTransfer = {
         var statementsFound_total = 0;
         var statementsCopied_total = 0;
         var statementsDeleted_total = 0;
+        var statementsReplaced_total = 0;
 
         for (const user of users) {
             statementsFound = 0;
             statementsCopied = 0;
             statementsDeleted = 0;
+            statementsReplaced = 0;
 
             docs = await db.queryFromCosmos(user);
 
@@ -88,19 +90,27 @@ let dataTransfer = {
                 let result = await db.copyToTargetMysql(docs_to_copy);
 
                 if (null !== result && result.affectedRows > 0){
-                    statementsCopied = result.affectedRows;
+                    let affected_rows = result.affectedRows;
+
+                    if ( affected_rows > statementsFound ){
+                        statementsReplaced = affected_rows - statementsFound;
+                        statementsCopied = statementsFound;
+                    }else{
+                        statementsCopied = affected_rows;
+                    }
                     statementsCopied_total += statementsCopied;
+                    statementsReplaced_total += statementsReplaced;
                 }
                 await db.updateNumOfRecordsCopied(user.user_id, statementsCopied);
             
-                if ( statementsCopied >= statementsFound ){
+                if ( statementsCopied === statementsFound ){
                     await db.updateCopyStatus(user.user_id, _COMPLETED_);
 
                     statementsDeleted += await dataTransfer.deleteFromSource(docs);
                     statementsDeleted_total += statementsDeleted;
                     await db.updateNumOfRecordsDeleted(user.user_id, statementsDeleted);
 
-                    if ( statementsDeleted === statementsFound ){
+                    if ( statementsDeleted === statementsCopied ){
                         await db.updateDeleteStatus(user.user_id, _COMPLETED_);
                     }else{
                         await db.updateDeleteStatus(user.user_id, _ERROR_);
@@ -118,15 +128,19 @@ let dataTransfer = {
 
             await db.updateTranferTime(user.user_id, moment().format('YYYY-MM-DD HH:mm:ss'));
         }
-        return [statementsFound_total, statementsCopied_total, statementsDeleted_total];
+        return [
+            statementsFound_total, statementsCopied_total, 
+            statementsReplaced_total, statementsDeleted_total
+        ];
     },
     printJobStatus: (
-        usersCount,docsFound, docsCopied, docsDeleted, 
+        usersCount, docsFound, docsCopied, docsReplaced, docsDeleted, 
         transferStarted, isTransferSuccessful) => {
-        console.log("learners FOUND       : " + ((null !== usersCount  && usersCount  > 0)? usersCount: 0));
-        console.log("statements FOUND     : " + ((null !== docsFound   && docsFound   > 0)? docsFound:  0));
-        console.log("statements COPIED    : " + ((null !== docsCopied  && docsCopied  > 0)? docsCopied: 0));
-        console.log("statements DELETED   : " + ((null !== docsDeleted && docsDeleted > 0)? docsDeleted:0));
+        console.log("learners FOUND       : " + ((null !== usersCount   && usersCount   > 0)? usersCount: 0));
+        console.log("statements FOUND     : " + ((null !== docsFound    && docsFound    > 0)? docsFound:  0));
+        console.log("statements COPIED    : " + ((null !== docsCopied   && docsCopied   > 0)? docsCopied: 0));
+        console.log("statements REPLACED  : " + ((null !== docsReplaced && docsReplaced > 0)? docsReplaced: 0));
+        console.log("statements DELETED   : " + ((null !== docsDeleted  && docsDeleted  > 0)? docsDeleted:0));
         console.log("Transfer status      : " + (
             (transferStarted && isTransferSuccessful || !transferStarted? "Success" : "Failed")
         ));
@@ -140,6 +154,7 @@ let dataTransfer = {
         var users, usersCount = 0;
         var docsFound = 0;
         var docsCopied = 0;
+        var docsReplaced = 0;
         var docsDeleted = 0;
 
         users = await dataTransfer.getCandidates();
@@ -147,10 +162,10 @@ let dataTransfer = {
         if (null !== users && users.length > 0){
             usersCount = users.length;
             var transferStarted = true;
-            [docsFound, docsCopied, docsDeleted] = await dataTransfer.doTransfer(users);
+            [docsFound, docsCopied, docsReplaced, docsDeleted] = await dataTransfer.doTransfer(users);
 
             if (docsCopied && docsCopied > 0){
-                if ( docsCopied < docsDeleted ){
+                if ( docsCopied !== docsDeleted ){
                     isTransferSuccessful = false;
                 }
             }
@@ -158,8 +173,8 @@ let dataTransfer = {
 
         endTime = process.hrtime(startTime);
         dataTransfer.printJobStatus(
-            usersCount,docsFound, docsCopied, 
-            docsDeleted,transferStarted, isTransferSuccessful
+            usersCount, docsFound, docsCopied, 
+            docsReplaced, docsDeleted, transferStarted, isTransferSuccessful
         );
         endTimeMS = endTime[0] + "." + endTime[1];
         return endTimeMS;
