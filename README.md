@@ -113,7 +113,7 @@ In addition, the process will also print some summary to the console so if you h
 
 _Example output_
 
-| DataTransfer task is running....   |
+| DataTransfer task is running.... | |
 | ------------ | ------------ |
 | learner records found | 100 |
 | statements found  | 20000 |
