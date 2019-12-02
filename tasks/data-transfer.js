@@ -65,20 +65,14 @@ let dataTransfer = {
         return deleted;
     },
     doTransfer: async (users) => {
-        var statementsFound = 0;
-        var statementsCopied = 0;
-        var statementsDeleted = 0;
-
-        var statementsFound_total = 0;
-        var statementsCopied_total = 0;
-        var statementsDeleted_total = 0;
-        var statementsReplaced_total = 0;
+        var statementsFound, statementsFound_total = 0;
+        var statementsCopied, statementsCopied_total = 0;
+        var statementsDeleted, statementsDeleted_total = 0;
+        var statementsReplaced, statementsReplaced_total = 0;
 
         for (const user of users) {
-            statementsFound = 0;
-            statementsCopied = 0;
-            statementsDeleted = 0;
-            statementsReplaced = 0;
+            statementsFound, statementsCopied = 0;
+            statementsReplaced, statementsDeleted = 0;
 
             docs = await db.queryFromCosmos(user);
 
