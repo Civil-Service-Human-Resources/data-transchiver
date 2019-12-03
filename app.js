@@ -24,13 +24,13 @@ let loadEnvVariables = () => {
     'TDS_MYSQL_HISTORY_DB_PWD',
 
     'COSMOS_SRC_CONNECTION_STRING',
-    'DATA_XFR_JOB_SCHEDULE',
+    'DATA_XFR_JOB_SCHEDULE'
   ];
 
   let unsetEnv = requiredEnv.filter((env) => !(typeof process.env[env] !== 'undefined'));
 
   if (unsetEnv.length > 0) {
-    throw new Error("Rrequired ENVIRONMENT variables are not set: [" + unsetEnv.join(', ') + "]");
+    throw new Error("Required ENVIRONMENT variables are not set: [" + unsetEnv.join(', ') + "]");
   }
 }
 

@@ -21,7 +21,7 @@ const Tasks = {
         await Tasks.queryAll();
     },
     prepare: async (_taskName) => {
-        db.printConfigs();
+        // db.printConfigs();
         await Tasks.reset();
         await Tasks.updateStatus(_taskName, 'READY');
     },
@@ -85,7 +85,7 @@ const Tasks = {
     },
     isTaskReady: async (_taskName) => {
         let results = await Tasks.queryStatus(_taskName);
-        if ( results[0].status === "READY" ){
+        if ( null !== results && results[0].status === "READY" ){
             return true;
         }
         return false;

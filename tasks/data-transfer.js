@@ -8,6 +8,12 @@ where user_id <> ''
 group by user_id
 order by updated_at desc`;
 
+const _COMPLETED_ = "COMPLETED";
+const _ERROR_ = "ERROR";
+const _SKIPPED_ = "SKIPPED";
+const DELETE_BATCH_SIZE = process.env.STATEMENTS_DELETE_BATCH_SIZE || 100;
+console.log("using DELETE_BATCH_SIZE " + DELETE_BATCH_SIZE);
+
 let dataTransfer = {
     getCandidates: async () => {
         let results = await db.queryRecords(
@@ -42,63 +48,95 @@ let dataTransfer = {
         return newDocs;
     },
     deleteFromSource: async (docs) => {
-        let deleted = 0;
-        let docs_to_delete = dataTransfer.prepareForDelete(docs);
-        let result = await db.deleteFromCosmos(docs_to_delete);
-        if (null != result){
-            deleted = result.deletedCount;
+        const BATCH_SIZE = DELETE_BATCH_SIZE;
+        documents_count = docs.length;
+
+        var i, j, deleted = 0;
+        for (i=0, j=documents_count; i<j; i+=BATCH_SIZE ){
+
+            let docs_chunck = docs.slice(i, i + BATCH_SIZE);
+            
+            let docs_to_delete = dataTransfer.prepareForDelete(docs_chunck);
+            let result = await db.deleteFromCosmos(docs_to_delete);
+            if (null !== result && result.deletedCount > 0){
+                deleted += result.deletedCount;
+            }
         }
+
         return deleted;
     },
     doTransfer: async (users) => {
-        var statementsFound = 0;
-        var statementsCopied = 0;
-        var statementsDeleted = 0;
-
-        var statementsFound_total = 0;
-        var statementsCopied_total = 0;
-        var statementsDeleted_total = 0;
+        var statementsFound, statementsFound_total = 0;
+        var statementsCopied, statementsCopied_total = 0;
+        var statementsDeleted, statementsDeleted_total = 0;
+        var statementsReplaced, statementsReplaced_total = 0;
 
         for (const user of users) {
-            statementsFound = 0;
-            statementsCopied = 0;
-            statementsDeleted = 0;
+            statementsFound, statementsCopied = 0;
+            statementsReplaced, statementsDeleted = 0;
 
             docs = await db.queryFromCosmos(user);
 
             if ( null !== docs && docs.length > 0){
                 statementsFound = docs.length;
                 statementsFound_total += statementsFound;
+                
                 let docs_to_copy = dataTransfer.prepareForCopy(docs);
                 let result = await db.copyToTargetMysql(docs_to_copy);
-                if (null != result){
-                    statementsCopied = result.affectedRows;
-                    statementsCopied_total += statementsCopied;
-                }
-            }
-            if ( statementsFound === statementsCopied ){
-                await db.updateCopyStatus(user.user_id, 'COMPLETED');
 
-                statementsDeleted += await dataTransfer.deleteFromSource(docs);
-                statementsDeleted_total += statementsDeleted;
-                
-                if ( statementsDeleted === statementsCopied){
-                    await db.updateDeleteStatus(user.user_id, 'COMPLETED');
-                    await db.updateNumOfRecords(user.user_id, statementsDeleted);
-                    await db.updateTranferTime(user.user_id, moment().format('YYYY-MM-DD HH:mm:ss'));
+                if (null !== result && result.affectedRows > 0){
+                    let affected_rows = result.affectedRows;
+
+                    if ( affected_rows > statementsFound ){
+                        statementsReplaced = affected_rows - statementsFound;
+                        statementsCopied = statementsFound;
+                    }else{
+                        statementsCopied = affected_rows;
+                    }
+                    statementsCopied_total += statementsCopied;
+                    statementsReplaced_total += statementsReplaced;
                 }
+                await db.updateNumOfRecordsCopied(user.user_id, statementsCopied);
+            
+                if ( statementsCopied === statementsFound ){
+                    await db.updateCopyStatus(user.user_id, _COMPLETED_);
+
+                    statementsDeleted += await dataTransfer.deleteFromSource(docs);
+                    statementsDeleted_total += statementsDeleted;
+                    await db.updateNumOfRecordsDeleted(user.user_id, statementsDeleted);
+
+                    if ( statementsDeleted === statementsCopied ){
+                        await db.updateDeleteStatus(user.user_id, _COMPLETED_);
+                    }else{
+                        await db.updateDeleteStatus(user.user_id, _ERROR_);
+                    }
+                }else{
+                    await db.updateCopyStatus(user.user_id, _ERROR_);
+                    await db.updateDeleteStatus(user.user_id, _SKIPPED_);
+                }
+            }else{
+                await db.updateCopyStatus(user.user_id, _SKIPPED_);
+                await db.updateDeleteStatus(user.user_id, _SKIPPED_);
             }
+            await db.updateNumOfRecordsCopied(user.user_id, statementsCopied);
+            await db.updateNumOfRecordsDeleted(user.user_id, statementsDeleted);
+
+            await db.updateTranferTime(user.user_id, moment().format('YYYY-MM-DD HH:mm:ss'));
         }
-        return [statementsFound_total, statementsCopied_total, statementsDeleted_total];
+        return [
+            statementsFound_total, statementsCopied_total, 
+            statementsReplaced_total, statementsDeleted_total
+        ];
     },
     printJobStatus: (
-        usersCount,docsFound, docsCopied, docsDeleted, 
+        usersCount, docsFound, docsCopied, docsReplaced, docsDeleted, 
         transferStarted, isTransferSuccessful) => {
-        console.log("learners FOUND       : " + ((null !== usersCount  && usersCount  > 0)? usersCount: 0));
-        console.log("statements FOUND     : " + ((null !== docsFound   && docsFound   > 0)? docsFound:  0));
-        console.log("statements COPIED    : " + ((null !== docsCopied  && docsCopied  > 0)? docsCopied: 0));
-        console.log("statements DELETED   : " + ((null !== docsDeleted && docsDeleted > 0)? docsDeleted:0));
-        console.log("Transfer status      : " + (
+        console.log("learner records FOUND : " + ((null !== usersCount   && usersCount   > 0)? usersCount: 0));
+        console.log("statements FOUND      : " + ((null !== docsFound    && docsFound    > 0)? docsFound:  0));
+        console.log("statements COPIED     : " + ((null !== docsCopied   && docsCopied   > 0)? docsCopied: 0));
+        console.log("statements REPLACED   : " + ((null !== docsReplaced && docsReplaced > 0)? docsReplaced: 0));
+        console.log("statements DELETED    : " + ((null !== docsDeleted  && docsDeleted  > 0)? docsDeleted:0));
+        console.log("Transfer status       : " + (
             (transferStarted && isTransferSuccessful || !transferStarted? "Success" : "Failed")
         ));
     },
@@ -111,6 +149,7 @@ let dataTransfer = {
         var users, usersCount = 0;
         var docsFound = 0;
         var docsCopied = 0;
+        var docsReplaced = 0;
         var docsDeleted = 0;
 
         users = await dataTransfer.getCandidates();
@@ -118,7 +157,7 @@ let dataTransfer = {
         if (null !== users && users.length > 0){
             usersCount = users.length;
             var transferStarted = true;
-            [docsFound, docsCopied, docsDeleted] = await dataTransfer.doTransfer(users);
+            [docsFound, docsCopied, docsReplaced, docsDeleted] = await dataTransfer.doTransfer(users);
 
             if (docsCopied && docsCopied > 0){
                 if ( docsCopied !== docsDeleted ){
@@ -129,8 +168,8 @@ let dataTransfer = {
 
         endTime = process.hrtime(startTime);
         dataTransfer.printJobStatus(
-            usersCount,docsFound, docsCopied, 
-            docsDeleted,transferStarted, isTransferSuccessful
+            usersCount, docsFound, docsCopied, 
+            docsReplaced, docsDeleted, transferStarted, isTransferSuccessful
         );
         endTimeMS = endTime[0] + "." + endTime[1];
         return endTimeMS;
