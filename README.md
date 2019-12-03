@@ -30,6 +30,21 @@ You should have the following installed in the environment you're planning to te
 1. Download the code and switch to the folder `data-transchiver`
 2. Run `npm install`
 3. export the required environment variables as mentioned below
+4. Create the target Mysql database and the statements_history table
+```
+CREATE DATABASE IF NOT EXISTS db_archiver;
+USE db_archiver;
+CREATE TABLE IF NOT EXISTS db_archiver.statements_history(
+	statement_hash varchar(50) primary key,
+	user_id varchar(50),
+	inserted_date DATETIME,
+	statement_date DATETIME,
+    statement JSON
+) ENGINE=InnoDB;
+CREATE INDEX idx_user_id ON statements_history(user_id);
+CREATE INDEX idx_inserted_date ON statements_history(inserted_date);
+CREATE INDEX idx_statement_date ON statements_history(statement_date);
+```
 4. Run the app as below `node app.js`
 
 #### Environment variables
