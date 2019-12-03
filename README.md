@@ -71,11 +71,14 @@ TDS_MYSQL_HISTORY_DB_PWD
 ```
 COSMOS_SRC_CONNECTION_STRING
 ```
-###### This is the schedule for the process to kickoff 
+###### This is the schedule (cron like scheduler) for the process to kickoff. 
 ```
 DATA_XFR_JOB_SCHEDULE
 ```
-
+###### Optional delete batch size for statements. 100 is a recommended number and also the default.
+```
+STATEMENTS_DELETE_BATCH_SIZE
+```
 ------------
 
 
