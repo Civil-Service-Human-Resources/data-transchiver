@@ -75,9 +75,16 @@ COSMOS_SRC_CONNECTION_STRING
 ```
 DATA_XFR_JOB_SCHEDULE
 ```
-###### Optional delete batch size for statements. 100 is a recommended number and also the default.
+###### Optional environment variables
+
+delete batch size for statements. 100 is a recommended number and also the default.
 ```
 STATEMENTS_DELETE_BATCH_SIZE
+```
+
+Runtime (cutt-off time) for the job. The default runtime has been set to 9 hrs (32400 seconds). When supplied will stop the job and terminate the node process. The runtime is only effective when the task job has started.
+```
+TDS_RUNTIME_IN_SECONDS
 ```
 ------------
 
