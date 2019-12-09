@@ -4,8 +4,8 @@ const dataTransfer = require('./tasks/data-transfer.js');
 const moment = require('moment');
 
 const _tasks = [
-    [1, 'DataIdentifier', 'NOT_READY'],
-    [2, 'DataTransfer', 'NOT_READY']
+    [1, 'DataIdentifier', null, '', 'NOT_READY'],
+    [2, 'DataTransfer',   null, '', 'NOT_READY']
 ];
 
 const updateTasksTable     = "UPDATE db_archiver.tasks_registry SET ";
@@ -22,7 +22,6 @@ const Tasks = {
     },
     prepare: async (_taskName) => {
         // db.printConfigs();
-        await db.copyFromLastRunToNewTable();
         await Tasks.reset();
         await Tasks.updateStatus(_taskName, 'READY');
     },

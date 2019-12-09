@@ -75,6 +75,12 @@ COSMOS_SRC_CONNECTION_STRING
 ```
 DATA_XFR_JOB_SCHEDULE
 ```
+
+_for example, to run the job at 9PM every night assign the following pattern_
+```
+export DATA_XFR_JOB_SCHEDULE="0 0 21 * * *"
+```
+
 ###### Optional environment variables
 
 delete batch size for statements. 100 is a recommended number and also the default.
@@ -101,8 +107,14 @@ The process creates three tables in the mysql database, and they are:
 | 2  | candidate_record  |
 | 3  | statements_history  |
 
-
 The process updates the first two tables to hold the meta information while executing, and the data that is copied from the source (Cosmos MongoDB) will be stored (transferred) into the 3rd table (statements_history).
+
+The process will also create a second table for (1 and 2) above to hold the results from the last precious run so the table names will be post-fixed with the word "_prev" as below.
+
+| #   |  Table Name |
+| ------------ | ------------ |
+| 5  | task_registry_prev  |
+| 6  | candidate_record_prev  |
 
 ------------
 ##### FAQs
@@ -112,6 +124,8 @@ The process updates the first two tables to hold the meta information while exec
 
 ###### Answer
 >Run the below sequel statement against the target mysql server
+
+_replace the table name with the `_prev` post-fix if the job was run multiple times_
 
 ```
 SELECT * FROM db_archiver.tasks_registry;
@@ -157,6 +171,8 @@ The process' transfer status will reflect “**Failed**” when the process has 
 ###### Answer
 >Run the below query, and you will know when the ERROR count is greater than zero
 
+_replace the table name with the `_prev` post-fix if the job was run multiple times_
+
 ```
 SELECT COUNT(*) Errors 
 FROM db_archiver.candidate_record 
@@ -176,6 +192,8 @@ Example output
 
 ###### Answer
 >Run the below query, and you will know when the ERROR count is greater than zero
+
+_replace the table name with the `_prev` post-fix if the job was run multiple times_
 
 ```
 SELECT SUM(deleted_count) deleted_total, SUM(copied_count) copied_total 

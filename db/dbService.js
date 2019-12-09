@@ -94,6 +94,8 @@ var dbHandler = {
                 elapsed_seconds varchar(50),
                 status varchar(50) not null
             ) ENGINE=InnoDB;
+            DROP TABLE IF EXISTS tasks_registry_prev;
+            CREATE TABLE tasks_registry_prev AS SELECT * FROM tasks_registry;
             TRUNCATE TABLE tasks_registry;`;
             await con.query(createTable);
             createTable = `USE db_archiver;
@@ -106,28 +108,9 @@ var dbHandler = {
                 deleted_count BIGINT,
                 time_completed DATETIME
             ) ENGINE=InnoDB;
+            DROP TABLE IF EXISTS candidate_record_prev;
+            CREATE TABLE candidate_record_prev AS SELECT * FROM candidate_record;
             TRUNCATE TABLE candidate_record;`;
-            await con.query(createTable);
-            await con.commit();
-        }catch(err){
-            throw err;
-        }finally{
-            await dbHandler.disconnect(con);
-        }
-    },
-    copyFromLastRunToNewTable: async () => {
-        try{
-            var con = await dbHandler.getConnection();
-            await con.connect();
-            var createTable = `CREATE SCHEMA IF NOT EXISTS db_archiver;
-                USE db_archiver;
-                DROP TABLE IF EXISTS tasks_registry_prev;
-                CREATE TABLE tasks_registry_prev AS SELECT * FROM tasks_registry;`
-            await con.query(createTable);
-            createTable = `CREATE SCHEMA IF NOT EXISTS db_archiver;
-                USE db_archiver;
-                DROP TABLE IF EXISTS candidate_record_prev;
-                CREATE TABLE candidate_record_prev AS SELECT * FROM candidate_record;`;
             await con.query(createTable);
             await con.commit();
         }catch(err){
@@ -140,7 +123,7 @@ var dbHandler = {
         try{
             var con = await dbHandler.getConnection();
             await con.connect();
-            await con.query('REPLACE INTO db_archiver.tasks_registry(id, name, status) VALUES ?', [_records]);
+            await con.query('REPLACE INTO db_archiver.tasks_registry(id, name, start_time, elapsed_seconds, status) VALUES ?', [_records]);
             await con.commit();
         }catch(err){
             throw err;
