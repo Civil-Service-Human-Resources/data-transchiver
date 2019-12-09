@@ -22,6 +22,7 @@ const Tasks = {
     },
     prepare: async (_taskName) => {
         // db.printConfigs();
+        await db.copyFromLastRunToNewTable();
         await Tasks.reset();
         await Tasks.updateStatus(_taskName, 'READY');
     },
@@ -56,16 +57,23 @@ const Tasks = {
     },
     DataIdentifier: async (_schedule, _callback) => {
         const task_name = 'DataIdentifier';
+        const dependant_task = 'DataTransfer';
 
-        if ( await Tasks.isTaskReady(task_name) ){
+        if ( await Tasks.isTaskReady(task_name) && Tasks.isTaskNotReady(dependant_task) ){
+            let startTime = Tasks.getTime();
+            await Tasks.updateStartTime(task_name, startTime);
+
             await Tasks.updateStatus(task_name, 'RUNNING');
-
-            await Tasks.updateStartTime(task_name, Tasks.getTime());
             let timeElapsed = await dataIdentifier.execute();
 
-            await Tasks.updateStatus(task_name, 'COMPLETED');
-            await Tasks.updateElapsedTime(task_name, timeElapsed);
-            await Tasks.updateStatus("DataTransfer", 'READY');
+            if (Tasks.isTaskRunning(task_name)){
+                await Tasks.updateStatus(task_name, 'COMPLETED');
+                await Tasks.updateElapsedTime(task_name, timeElapsed);
+                
+                if ( Tasks.isTaskNotReady(dependant_task) ){
+                    await Tasks.updateStatus("DataTransfer", 'READY');
+                }
+            }
         }
         _callback(task_name);
     },
@@ -74,13 +82,16 @@ const Tasks = {
         const dependant_task = 'DataIdentifier';
 
         if ( await Tasks.isTaskReady(task_name) && Tasks.isTaskCompleted(dependant_task) ){
-            await Tasks.updateStatus(task_name, 'RUNNING');
+            let startTime = Tasks.getTime();
+            await Tasks.updateStartTime(task_name, startTime);
 
-            await Tasks.updateStartTime(task_name, Tasks.getTime());
+            await Tasks.updateStatus(task_name, 'RUNNING');
             let timeElapsed = await dataTransfer.execute();
 
-            await Tasks.updateStatus(task_name, 'COMPLETED');
-            await Tasks.updateElapsedTime(task_name, timeElapsed);
+            if (Tasks.isTaskRunning(task_name)){
+                await Tasks.updateStatus(task_name, 'COMPLETED');
+                await Tasks.updateElapsedTime(task_name, timeElapsed);
+            }
         }
         _callback(task_name);
     },
@@ -96,6 +107,22 @@ const Tasks = {
         let results = await Tasks.queryStatus(_taskName);
         if ( null !== results && undefined !== results[0] &&
              results[0].status === "READY" ){
+            return true;
+        }
+        return false;
+    },
+    isTaskNotReady: async (_taskName) => {
+        let results = await Tasks.queryStatus(_taskName);
+        if ( null !== results && undefined !== results[0] &&
+             results[0].status === "NOT_READY" ){
+            return true;
+        }
+        return false;
+    },
+    isTaskRunning: async (_taskName) => {
+        let results = await Tasks.queryStatus(_taskName);
+        if ( null !== results && undefined !== results[0] &&
+             results[0].status === "RUNNING" ){
             return true;
         }
         return false;

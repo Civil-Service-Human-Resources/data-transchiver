@@ -87,17 +87,16 @@ var dbHandler = {
             await con.connect();
             var createTable = `CREATE SCHEMA IF NOT EXISTS db_archiver;
                 USE db_archiver;
-                DROP TABLE IF EXISTS tasks_registry;
                 CREATE TABLE IF NOT EXISTS tasks_registry(
                 id int primary key,
                 name varchar(50) not null,
                 start_time DATETIME,
                 elapsed_seconds varchar(50),
                 status varchar(50) not null
-            ) ENGINE=InnoDB`;
+            ) ENGINE=InnoDB;
+            TRUNCATE TABLE tasks_registry;`;
             await con.query(createTable);
             createTable = `USE db_archiver;
-                DROP TABLE IF EXISTS candidate_record;
                 CREATE TABLE IF NOT EXISTS candidate_record(
                 user_id varchar(50) primary key,
                 updated_at DATETIME,
@@ -106,7 +105,29 @@ var dbHandler = {
                 copied_count BIGINT,
                 deleted_count BIGINT,
                 time_completed DATETIME
-            ) ENGINE=InnoDB`;
+            ) ENGINE=InnoDB;
+            TRUNCATE TABLE candidate_record;`;
+            await con.query(createTable);
+            await con.commit();
+        }catch(err){
+            throw err;
+        }finally{
+            await dbHandler.disconnect(con);
+        }
+    },
+    copyFromLastRunToNewTable: async () => {
+        try{
+            var con = await dbHandler.getConnection();
+            await con.connect();
+            var createTable = `CREATE SCHEMA IF NOT EXISTS db_archiver;
+                USE db_archiver;
+                DROP TABLE IF EXISTS tasks_registry_prev;
+                CREATE TABLE tasks_registry_prev AS SELECT * FROM tasks_registry;`
+            await con.query(createTable);
+            createTable = `CREATE SCHEMA IF NOT EXISTS db_archiver;
+                USE db_archiver;
+                DROP TABLE IF EXISTS candidate_record_prev;
+                CREATE TABLE candidate_record_prev AS SELECT * FROM candidate_record;`;
             await con.query(createTable);
             await con.commit();
         }catch(err){

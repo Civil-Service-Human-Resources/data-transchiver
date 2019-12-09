@@ -38,10 +38,11 @@ let updateTasksList = (_jobref) => {
 }
 
 let callback = (taskName) => {
-  jobs.forEach(job => {
+  for (const job of jobs){
     
     if ( job.id === taskName && null !== job.task ){
-      scheduler.stopSchedule(job.task);
+      scheduler.stopSchedule(job);
+      jobs.splice(jobs.indexOf(job), 1);
 
       if (job.id === "DataIdentifier"){
         let _schedule = scheduler.getSchedule(true);
@@ -49,21 +50,30 @@ let callback = (taskName) => {
           tasks.DataTransfer(_schedule, callback);
         });
         updateTasksList({"id": "DataTransfer", "task": job});  
+      }else if (job.id === "DataTransfer"){
+        resetSchedule();
       }
     }
-  });
+  }
+}
+
+let resetSchedule = () => {
+  jobs = [];
+  startSchedule();
 }
 
 let startSchedule = () => {
-  tasks.prepare("DataIdentifier");
+  if (jobs.length === 0){
+    tasks.prepare("DataIdentifier");
 
-  let _schedule = scheduler.getSchedule();
-  let job = scheduler.createSchedule(_schedule, function(){
-    tasks.DataIdentifier(_schedule, callback);
-  });
-  scheduler.runTimeOutTask();
+    let _schedule = scheduler.getSchedule();
+    let job = scheduler.createSchedule(_schedule, function(){
+      tasks.DataIdentifier(_schedule, callback);
+    });
   
-  updateTasksList({"id": "DataIdentifier", "task": job});
+    scheduler.runTimeOutTask(resetSchedule);
+    updateTasksList({"id": "DataIdentifier", "task": job});
+  } 
 }
 
 app.get('/', (req, res) => {

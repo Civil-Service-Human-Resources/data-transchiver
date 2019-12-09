@@ -35,67 +35,58 @@ let scheduler = {
     },
     stopSchedule: (_job) => {
         console.info(sprintf("\nstopping task %s",CircularJSON.stringify(_job)));
-        _job.stop();
-        _job.destroy();
+        _job.task.stop();
+        _job.task.destroy();
+        jobs.splice(jobs.indexOf(_job), 1);
     },
     validate: (_schedule) => {
         return cron.validate(_schedule);
     },
-    timeout: async () => {
+    timeout: async (_callback) => {
         if (jobs.length > 0){
             for (const job of jobs){
                 if (null !== job && undefined !== job.task && null !== job.task){
                     if ( "destroyed" !== job.task.getStatus() ){
-                        job.task.stop();
-                        job.task.destroy();
+                        scheduler.stopSchedule(job);
                         await tasks.updateStatus(job.id, "INTERRUPTED");
                         console.info("Stopped task " + job.id);
                     }
                     job.task = null;
                 }
             }
+            timeoutTaskHandle.stop();
+            timeoutTaskHandle.destroy();
+            timeoutTaskHandle = null;
+            jobs = [];
+            _callback();
         }
-        
-        console.info("Exiting the proceess...");
-        process.exit();
     },
     updateTasksList: (_jobref) => {
         jobs.push(_jobref);
     },
-    runTimeOutTask: async () => {
-        const now = new Date();  
-        const future = new Date(now.getTime() + JOB_RUNTIME_SECONDS * MILLIS_IN_SECOND);
-
-        processStartTime = Math.round(now.getTime() / MILLIS_IN_SECOND);
-        timeOutTimeInSeconds = Math.round(future.getTime() / MILLIS_IN_SECOND);
-
-        console.info("\nstartTime : " + processStartTime + ", cuttOffTime : " + timeOutTimeInSeconds);
-
-        timeoutTaskHandle = scheduler.createSchedule("*/10 * * * * *", function(){
-            scheduler.timeOutChecker();
-        });
+    runTimeOutTask: async (_callback) => {
+        if (null === timeoutTaskHandle) {
+            const now = new Date();  
+            const future = new Date(now.getTime() + JOB_RUNTIME_SECONDS * MILLIS_IN_SECOND);
+    
+            processStartTime = Math.round(now.getTime() / MILLIS_IN_SECOND);
+            timeOutTimeInSeconds = Math.round(future.getTime() / MILLIS_IN_SECOND);
+    
+            console.info("\nstartTime : " + processStartTime + ", cuttOffTime : " + timeOutTimeInSeconds);
+    
+            timeoutTaskHandle = scheduler.createSchedule("*/10 * * * * *", function(){
+                scheduler.timeOutChecker(_callback);
+            });   
+        }
     }, 
-    timeOutChecker: () => {
+    timeOutChecker: (_callback) => {
 
         const now = new Date();
         const currentTimeInSeconds = Math.round(now.getTime() / 1000);
 
         if ( currentTimeInSeconds >= timeOutTimeInSeconds){
             console.info("\nTimeout event fired. requesting scheduler to stop the tasks....")
-            scheduler.timeout();
-
-            let tasksCount = jobs.length;
-            let stoppedTasks = 0;
-            for (job of jobs){
-                if ( job.task === null ){
-                    stoppedTasks += 1;
-                }
-            }
-
-            if ( stoppedTasks === tasksCount ){
-                timeoutTaskHandle.stop();
-                timeoutTaskHandle.destroy();
-            }
+            scheduler.timeout(_callback);
         }
     },
     getSchedule: (immediate=false) => {
