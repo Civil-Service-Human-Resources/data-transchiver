@@ -1,6 +1,6 @@
 const db = require('../db/dbService.js');
 
-const selectUsersFromLearnerRecords = `select distinct(user_id) user_id, max(updated_at) updated_at 
+const selectUsersFromLearnerRecords = `select user_id user_id, max(updated_at) updated_at 
 from learner_record.module_record 
 where user_id <> ''
 group by user_id
