@@ -20,6 +20,10 @@ let dataIdentifier = {
         let startTime = process.hrtime();
 
         let records = await dataIdentifier.queryUsersFromLearnerRecords();
+
+        let queryEndTime = process.hrtime(startTime);
+        console.info("Query for user learner records took: " + queryEndTime[0] + "." + queryEndTime[1] + " seconds.");
+
         if ( null !== records ){
             for( const record of records) {
                 await dataIdentifier.populateCandidateRecords([ 
