@@ -108,7 +108,7 @@ var dbHandler = {
                 time_completed DATETIME
             ) ENGINE=InnoDB`;
             await con.query(createTable);
-            createIndex = `CREATE INDEX candidate_record_updated_at_idx ON candidate_record(updated_at DESC);`;
+            createIndex = `USE db_archiver; CREATE INDEX candidate_record_updated_at_idx ON candidate_record(updated_at DESC);`;
             await con.query(createIndex);
             await con.commit();
         }catch(err){
