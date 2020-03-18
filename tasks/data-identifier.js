@@ -12,8 +12,8 @@ let dataIdentifier = {
             selectUsersFromLearnerRecords
         );
     },
-    populateCandidateRecords: async (query) => {
-        return await db.insertIntoCandidateRecords(query);
+    populateCandidateRecords: async (query, con) => {
+        return await db.insertIntoCandidateRecords(query, con);
     },
     execute: async () => {
         console.info("DataIdentifier task is running.....");
@@ -21,10 +21,17 @@ let dataIdentifier = {
 
         let records = await dataIdentifier.queryUsersFromLearnerRecords();
         if ( null !== records ){
-            for( const record of records) {
-                await dataIdentifier.populateCandidateRecords([ 
-                    [record.user_id,  record.updated_at]
-                ]);
+            try {
+                var con = await dbHandler.getConnection();
+                await con.connect();
+                for (const record of records) {
+                    await dataIdentifier.populateCandidateRecords([[record.user_id,  record.updated_at]], con);
+                }
+                await con.commit();
+            } catch (err){
+                throw err;
+            } finally {
+                await dbHandler.disconnect(con);
             }
         }
         endTime = process.hrtime(startTime);

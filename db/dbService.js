@@ -131,17 +131,8 @@ var dbHandler = {
             await dbHandler.disconnect(con);
         }
     },
-    insertIntoCandidateRecords: async (_records) => {
-        try{
-            var con = await dbHandler.getConnection();
-            await con.connect();
-            await con.query('REPLACE INTO db_archiver.candidate_record(user_id, updated_at) VALUES ?', [_records]);
-            await con.commit();
-        }catch(err){
-            throw err;
-        }finally{
-            await dbHandler.disconnect(con);
-        }
+    insertIntoCandidateRecords: async (_records, con) => {
+        await con.query('REPLACE INTO db_archiver.candidate_record(user_id, updated_at) VALUES ?', [_records]);
     },
     queryRecords: async (query) => {
         try{
