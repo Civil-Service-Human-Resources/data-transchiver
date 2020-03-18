@@ -15,24 +15,27 @@ let dataIdentifier = {
     populateCandidateRecords: async (query, con) => {
         return await db.insertIntoCandidateRecords(query, con);
     },
+    proccessCandidateRecords: async (records) => {
+        try {
+            var con = await dbHandler.getConnection();
+            await con.connect();
+            for (const record of records) {
+                await dataIdentifier.populateCandidateRecords([[record.user_id,  record.updated_at]], con);
+            }
+            await con.commit();
+        } catch (err){
+            throw err;
+        } finally {
+            await dbHandler.disconnect(con);
+        }
+    },
     execute: async () => {
         console.info("DataIdentifier task is running.....");
         let startTime = process.hrtime();
 
         let records = await dataIdentifier.queryUsersFromLearnerRecords();
-        if ( null !== records ){
-            try {
-                var con = await dbHandler.getConnection();
-                await con.connect();
-                for (const record of records) {
-                    await dataIdentifier.populateCandidateRecords([[record.user_id,  record.updated_at]], con);
-                }
-                await con.commit();
-            } catch (err){
-                throw err;
-            } finally {
-                await dbHandler.disconnect(con);
-            }
+        if (records !== null){
+            proccessCandidateRecords(records);
         }
         endTime = process.hrtime(startTime);
         endTimeMS = endTime[0] + "." + endTime[1];

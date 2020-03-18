@@ -64,6 +64,7 @@ const Tasks = {
 
             await Tasks.updateStatus(task_name, 'RUNNING');
             let timeElapsed = await dataIdentifier.execute();
+            console.log("Data identifier task finished in " + timeElapsed + " seconds");
 
             if (Tasks.isTaskRunning(task_name)){
                 await Tasks.updateStatus(task_name, 'COMPLETED');
