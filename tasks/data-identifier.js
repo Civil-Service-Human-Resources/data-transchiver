@@ -21,8 +21,8 @@ let dataIdentifier = {
             await con.connect();
             for (const record of records) {
                 await dataIdentifier.populateCandidateRecords([[record.user_id,  record.updated_at]], con);
+                await con.commit();
             }
-            await con.commit();
         } catch (err){
             throw err;
         } finally {
