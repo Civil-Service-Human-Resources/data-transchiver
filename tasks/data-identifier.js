@@ -17,7 +17,7 @@ let dataIdentifier = {
     },
     proccessCandidateRecords: async (records) => {
         try {
-            var con = await dbHandler.getConnection();
+            var con = await db.getConnection();
             await con.connect();
             for (const record of records) {
                 await dataIdentifier.populateCandidateRecords([[record.user_id,  record.updated_at]], con);
@@ -26,7 +26,7 @@ let dataIdentifier = {
         } catch (err){
             throw err;
         } finally {
-            await dbHandler.disconnect(con);
+            await db.disconnect(con);
         }
     },
     execute: async () => {
