@@ -35,7 +35,7 @@ let dataIdentifier = {
 
         let records = await dataIdentifier.queryUsersFromLearnerRecords();
         if (records !== null){
-            proccessCandidateRecords(records);
+            dataIdentifier.proccessCandidateRecords(records);
         }
         endTime = process.hrtime(startTime);
         endTimeMS = endTime[0] + "." + endTime[1];
