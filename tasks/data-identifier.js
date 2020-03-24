@@ -20,6 +20,8 @@ let dataIdentifier = {
             var con = await db.getConnection();
             await con.connect();
             for (const record of records) {
+                console.log("Populating candidate record");
+                console.log(record);
                 await dataIdentifier.populateCandidateRecords([[record.user_id,  record.updated_at]], con);
                 await con.commit();
             }
@@ -36,6 +38,7 @@ let dataIdentifier = {
         let records = await dataIdentifier.queryUsersFromLearnerRecords();
         if (records !== null){
             dataIdentifier.proccessCandidateRecords(records);
+            console.log("Number of records: " + records.length);
         }
         endTime = process.hrtime(startTime);
         endTimeMS = endTime[0] + "." + endTime[1];
