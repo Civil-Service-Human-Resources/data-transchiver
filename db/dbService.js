@@ -131,44 +131,41 @@ var dbHandler = {
             await dbHandler.disconnect(con);
         }
     },
-    insertIntoCandidateRecords: async (_records, con) => {
-        await con.query('REPLACE INTO db_archiver.candidate_record(user_id, updated_at) VALUES ?', [_records]);
+    insertIntoCandidateRecords: async (_records, client) => {
+        await client.query('REPLACE INTO db_archiver.candidate_record(user_id, updated_at) VALUES ?', [_records]);
     },
-    queryRecords: async (query) => {
-        try{
-            var con = await dbHandler.getConnection();
-            await con.connect();
-            var records = await con.query(query);
+    queryRecords: async (query, client) => {
+            var records = await client.query(query);
             return records;
-        }catch(err){
-            throw err;
-        }finally{
-            await dbHandler.disconnect(con);
-        }
     },
-    updateCopyStatus: async (_userId, _status) => {
+    updateCopyStatus: async (_userId, _status, client) => {
         await dbHandler.queryRecords(
-            updateCandidateTable + "copy_status = '" + _status + "' WHERE user_id = '" + _userId + "'"
+            updateCandidateTable + "copy_status = '" + _status + "' WHERE user_id = '" + _userId + "'",
+            client
         );
     },
-    updateDeleteStatus: async (_userId, _status) => {
+    updateDeleteStatus: async (_userId, _status, client) => {
         await dbHandler.queryRecords(
-            updateCandidateTable + "delete_status = '" + _status + "' WHERE user_id = '" + _userId + "'"
+            updateCandidateTable + "delete_status = '" + _status + "' WHERE user_id = '" + _userId + "'",
+            client
         );
     },
-    updateNumOfRecordsCopied: async (_userId, numRecords) => {
+    updateNumOfRecordsCopied: async (_userId, numRecords, client) => {
         await dbHandler.queryRecords(
-            updateCandidateTable + "copied_count = " + numRecords + " WHERE user_id = '" + _userId + "'"
+            updateCandidateTable + "copied_count = " + numRecords + " WHERE user_id = '" + _userId + "'",
+            client
         );
     },
-    updateNumOfRecordsDeleted: async (_userId, numRecords) => {
+    updateNumOfRecordsDeleted: async (_userId, numRecords, client) => {
         await dbHandler.queryRecords(
-            updateCandidateTable + "deleted_count = " + numRecords + " WHERE user_id = '" + _userId + "'"
+            updateCandidateTable + "deleted_count = " + numRecords + " WHERE user_id = '" + _userId + "'",
+            client
         );
     },
-    updateTranferTime: async (_userId, completedAt) => {
+    updateTranferTime: async (_userId, completedAt, client) => {
         await dbHandler.queryRecords(
-            updateCandidateTable + "time_completed = '" + completedAt + "' WHERE user_id = '" + _userId + "'"
+            updateCandidateTable + "time_completed = '" + completedAt + "' WHERE user_id = '" + _userId + "'",
+            client
         );
     },
     queryFromLearnerRecords: async (query) => {
@@ -183,59 +180,29 @@ var dbHandler = {
             await dbHandler.disconnect(con);
         }
     },
-    queryFromCosmos: async (user) => {
-        let db, client;
-        try {
-            client = await MongoClient.connect(cosmos_src_connection_string,
-                { useUnifiedTopology: true, useNewUrlParser: true });
-            db = client.db("admin");
+    queryFromCosmos: async (user, client) => {
+        let db;
+        db = client.db("admin");
+        return await db.collection("statements")
+            .find({
+                "statement.actor.account.name": user.user_id, 
+                "statement.timestamp": { $lt: user.updated_at }
+            })
+            .toArray();
+    },
+    deleteFromCosmos: async (docsArr, client) => {
+        let db;
+        db = client.db("admin");
             return await db.collection("statements")
-                .find({
-                    "statement.actor.account.name": user.user_id, 
-                    "statement.timestamp": { $lt: user.updated_at }
-                })
-                .toArray();
-        }catch(err){
-            throw err
-        } finally {
-            client.close();
-        }
+                .deleteMany({'_id':{'$in':docsArr}});
     },
-    deleteFromCosmos: async (docsArr) => {
-        let db, client;
-        try {
-            client = await MongoClient.connect(cosmos_src_connection_string,
-                { useUnifiedTopology: true, useNewUrlParser: true });
-            db = client.db("admin");
-            try{
-                return await db.collection("statements")
-                    .deleteMany({'_id':{'$in':docsArr}});
-            }catch(err){
-                // fail silently
-            }finally {
-                client.close();
-            }
-        }catch(err){
-            throw err; 
-        }finally {
-            client.close();
-        }
-    },
-    copyToTargetMysql: async (_records) => {
-        try{
-            var con = await dbHandler.getConnectionToTarget();
-            await con.connect();
-            var result = await con.query(
-                'REPLACE INTO db_archiver.statements_history(statement_hash, user_id, inserted_date, statement_date, statement) VALUES ?', 
-                [_records]
-            );
-            await con.commit();
-            return result;
-        }catch(err){
-            throw err;
-        }finally{
-            await dbHandler.disconnect(con);
-        }
+    copyToTargetMysql: async (_records, client) => {
+        var result = await client.query(
+            'REPLACE INTO db_archiver.statements_history(statement_hash, user_id, inserted_date, statement_date, statement) VALUES ?', 
+            [_records]
+        );
+        await client.commit();
+        return result;
     }
 }
 
