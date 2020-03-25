@@ -172,6 +172,7 @@ let dataTransfer = {
 
         if (users !== null && users.length > 0) {
             usersCount = users.length;
+            console.log("Number of users: " + usersCount);
             var transferStarted = true;
             [docsFound, docsCopied, docsReplaced, docsDeleted] = await dataTransfer.doTransfer(users);
 

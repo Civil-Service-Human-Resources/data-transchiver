@@ -88,6 +88,8 @@ const Tasks = {
             await Tasks.updateStatus(task_name, 'RUNNING');
             let timeElapsed = await dataTransfer.execute();
 
+            console.log("Data transfer task finished in " + timeElapsed + " seconds");
+
             if (Tasks.isTaskRunning(task_name)){
                 await Tasks.updateStatus(task_name, 'COMPLETED');
                 await Tasks.updateElapsedTime(task_name, timeElapsed);

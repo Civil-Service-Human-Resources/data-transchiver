@@ -36,6 +36,7 @@ let dataIdentifier = {
         let records = await dataIdentifier.queryUsersFromLearnerRecords();
         if (records !== null){
             dataIdentifier.proccessCandidateRecords(records);
+            console.log("Processed records: " + records.length);
         }
         endTime = process.hrtime(startTime);
         endTimeMS = endTime[0] + "." + endTime[1];
