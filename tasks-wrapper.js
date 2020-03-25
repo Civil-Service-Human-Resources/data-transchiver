@@ -42,24 +42,63 @@ const Tasks = {
         console.table([results[0], results[1]]);
     },
     queryStatus: async (_taskName) => {
-        return await db.queryRecords(
-            selectFromTasksTable + "WHERE name = '" + _taskName + "'"
-        );
+        try {
+            var client = await dbHandler.getConnection();
+            await client.connect();
+            return await db.queryRecords(
+                selectFromTasksTable + "WHERE name = '" + _taskName + "'",
+                client
+            );
+        }catch(err){
+            throw err;
+        }finally{
+            await dbHandler.disconnect(client);
+        }
     },
     updateStatus: async (_taskName, _status) => {
-        await db.queryRecords(
-            updateTasksTable + "status = '" + _status + "' WHERE name = '" + _taskName + "'"
-        );
+        try {
+            var client = await dbHandler.getConnection();
+            await client.connect();
+            await db.queryRecords(
+                updateTasksTable + "status = '" + _status + "' WHERE name = '" + _taskName + "'",
+                client
+            );
+            await client.commit();
+        }catch(err){
+            throw err;
+        }finally{
+            await dbHandler.disconnect(client);
+        }
     },
     updateElapsedTime: async (_taskName, _seconds) => {
-        await db.queryRecords(
-            updateTasksTable + "elapsed_seconds = " + _seconds + " WHERE name = '" + _taskName + "'"
-        );
+        try {
+            var client = await dbHandler.getConnection();
+            await client.connect();
+            await db.queryRecords(
+                updateTasksTable + "elapsed_seconds = " + _seconds + " WHERE name = '" + _taskName + "'",
+                client
+            );
+            await client.commit();
+        }catch(err){
+            throw err;
+        }finally{
+            await dbHandler.disconnect(client);
+        }
     },
     updateStartTime: async (_taskName, _startedAt) => {
-        await db.queryRecords(
-            updateTasksTable + "start_time = '" + _startedAt + "' WHERE name = '" + _taskName + "'"
-        );
+        try {
+            var client = await dbHandler.getConnection();
+            await client.connect();
+            await db.queryRecords(
+                updateTasksTable + "start_time = '" + _startedAt + "' WHERE name = '" + _taskName + "'",
+                client
+            );
+            await client.commit();
+        }catch(err){
+            throw err;
+        }finally{
+            await dbHandler.disconnect(client);
+        }
     },
     getTime: () => {
         return moment().format('YYYY-MM-DD HH:mm:ss');
