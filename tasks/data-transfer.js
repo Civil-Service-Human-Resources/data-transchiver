@@ -125,7 +125,7 @@ let dataTransfer = {
                         await db.updateDeleteStatus(user.user_id, _SKIPPED_, mySqlClient);
                     }
                 } else {
-                    await db.updateCopyStatus(user.user_id, _SKIPPED_, mySqlClient);
+                    await db.updateCopyStatus(user.user_id, _ERROR_, mySqlClient);
                     await db.updateDeleteStatus(user.user_id, _SKIPPED_, mySqlClient);
                 }
                 await db.updateNumOfRecordsCopied(user.user_id, statementsCopied, mySqlClient);
