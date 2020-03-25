@@ -16,13 +16,23 @@ console.info("using DELETE_BATCH_SIZE " + DELETE_BATCH_SIZE);
 
 let dataTransfer = {
     getCandidates: async () => {
-        let results = await db.queryRecords(
-            selectCandidateRecords
-        );
-        if (null != results) {
-            return results;
+        try{
+            var client = await dbHandler.getConnection();
+            await client.connect();
+            let results = await db.queryRecords(
+                selectCandidateRecords,
+                client
+            );
+            await client.commit();
+            if (null != results) {
+                return results;
+            }
+            return null;
+        }catch(err){
+            throw err;
+        }finally{
+            await dbHandler.disconnect(client);
         }
-        return null;
     },
     prepareForDelete: (docs) => {
         let newDocs = [];

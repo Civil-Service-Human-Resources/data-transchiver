@@ -18,16 +18,26 @@ const Tasks = {
     reset: async () => {
         await db.createSchema();
         await db.insertRecords(_tasks);
-        await Tasks.queryAll();
+        try {
+            var client = await dbHandler.getConnection();
+            await client.connect();
+            await Tasks.queryAll(client);
+            await client.commit();
+        }catch(err){
+            throw err;
+        }finally{
+            await dbHandler.disconnect(client);
+        }
     },
     prepare: async (_taskName) => {
         // db.printConfigs();
         await Tasks.reset();
         await Tasks.updateStatus(_taskName, 'READY');
     },
-    queryAll: async () => {
+    queryAll: async (client) => {
         let results = await db.queryRecords(
-            selectFromTasksTable
+            selectFromTasksTable,
+            client
         );
         console.table([results[0], results[1]]);
     },
