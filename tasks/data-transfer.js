@@ -80,10 +80,8 @@ let dataTransfer = {
             await mySqlClient.connect();
 
             for (const user of users) {
-                statementsFound,
-                statementsCopied = 0;
-                statementsReplaced,
-                statementsDeleted = 0;
+                statementsFound, statementsCopied = 0;
+                statementsReplaced, statementsDeleted = 0;
 
                 docs = await db.queryFromCosmos(user, mongoClient);
 
