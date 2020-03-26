@@ -5,6 +5,7 @@ const md5 = require('md5');
 const selectCandidateRecords = `select user_id, DATE_FORMAT(max(updated_at), '%Y-%m-%dT%TZ') updated_at 
 from db_archiver.candidate_record 
 where user_id <> ''
+group by user_id
 order by updated_at desc`;
 
 const _COMPLETED_ = "COMPLETED";
