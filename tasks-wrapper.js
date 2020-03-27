@@ -1,11 +1,11 @@
-let db = require('./db/dbService.js');
-let dataIdentifier = require('./tasks/data-identifier.js');
-let dataTransfer = require('./tasks/data-transfer.js');
-let moment = require('moment');
+const db = require('./db/dbService.js');
+const dataIdentifier = require('./tasks/data-identifier.js');
+const dataTransfer = require('./tasks/data-transfer.js');
+const moment = require('moment');
 
 const _tasks = [
-    [1, 'DataIdentifier', 'NOT_READY'],
-    [2, 'DataTransfer', 'NOT_READY']
+    [1, 'DataIdentifier', null, '', 'NOT_READY'],
+    [2, 'DataTransfer',   null, '', 'NOT_READY']
 ];
 
 const updateTasksTable     = "UPDATE db_archiver.tasks_registry SET ";
@@ -13,7 +13,7 @@ const selectFromTasksTable = "SELECT name, status from db_archiver.tasks_registr
 
 const Tasks = {
     printSchedule: (_schedule) => {
-        console.log("\n\ntask scheduled at " + _schedule + " and running at " + new Date());
+        console.info("\n\ntask scheduled at " + _schedule + " and running at " + new Date());
     },
     reset: async () => {
         await db.createSchema();
@@ -56,36 +56,72 @@ const Tasks = {
     },
     DataIdentifier: async (_schedule, _callback) => {
         const task_name = 'DataIdentifier';
+        const dependant_task = 'DataTransfer';
 
-        if ( await Tasks.isTaskReady(task_name) ){
+        if ( await Tasks.isTaskReady(task_name) && Tasks.isTaskNotReady(dependant_task) ){
+            let startTime = Tasks.getTime();
+            await Tasks.updateStartTime(task_name, startTime);
+
             await Tasks.updateStatus(task_name, 'RUNNING');
-
-            await Tasks.updateStartTime(task_name, Tasks.getTime());
             let timeElapsed = await dataIdentifier.execute();
 
-            await Tasks.updateStatus(task_name, 'COMPLETED');
-            await Tasks.updateElapsedTime(task_name, timeElapsed);
-            await Tasks.updateStatus("DataTransfer", 'READY');
+            if (Tasks.isTaskRunning(task_name)){
+                await Tasks.updateStatus(task_name, 'COMPLETED');
+                await Tasks.updateElapsedTime(task_name, timeElapsed);
+                
+                if ( Tasks.isTaskNotReady(dependant_task) ){
+                    await Tasks.updateStatus("DataTransfer", 'READY');
+                }
+            }
         }
         _callback(task_name);
     },
     DataTransfer: async (_schedule, _callback) => {
         const task_name = 'DataTransfer';
+        const dependant_task = 'DataIdentifier';
 
-        if ( await Tasks.isTaskReady(task_name) ){
+        if ( await Tasks.isTaskReady(task_name) && Tasks.isTaskCompleted(dependant_task) ){
+            let startTime = Tasks.getTime();
+            await Tasks.updateStartTime(task_name, startTime);
+
             await Tasks.updateStatus(task_name, 'RUNNING');
-
-            await Tasks.updateStartTime(task_name, Tasks.getTime());
             let timeElapsed = await dataTransfer.execute();
 
-            await Tasks.updateStatus(task_name, 'COMPLETED');
-            await Tasks.updateElapsedTime(task_name, timeElapsed);
+            if (Tasks.isTaskRunning(task_name)){
+                await Tasks.updateStatus(task_name, 'COMPLETED');
+                await Tasks.updateElapsedTime(task_name, timeElapsed);
+            }
         }
         _callback(task_name);
     },
+    isTaskCompleted: async (_taskName) => {
+        let results = await Tasks.queryStatus(_taskName);
+        if ( null !== results && undefined !== results[0] && 
+            results[0].status === "COMPLETED" ){
+            return true;
+        }
+        return false;
+    },
     isTaskReady: async (_taskName) => {
         let results = await Tasks.queryStatus(_taskName);
-        if ( null !== results && results[0].status === "READY" ){
+        if ( null !== results && undefined !== results[0] &&
+             results[0].status === "READY" ){
+            return true;
+        }
+        return false;
+    },
+    isTaskNotReady: async (_taskName) => {
+        let results = await Tasks.queryStatus(_taskName);
+        if ( null !== results && undefined !== results[0] &&
+             results[0].status === "NOT_READY" ){
+            return true;
+        }
+        return false;
+    },
+    isTaskRunning: async (_taskName) => {
+        let results = await Tasks.queryStatus(_taskName);
+        if ( null !== results && undefined !== results[0] &&
+             results[0].status === "RUNNING" ){
             return true;
         }
         return false;

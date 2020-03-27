@@ -16,7 +16,7 @@ let dataIdentifier = {
         return await db.insertIntoCandidateRecords(query);
     },
     execute: async () => {
-        console.log("DataIdentifier task is running.....");
+        console.info("DataIdentifier task is running.....");
         let startTime = process.hrtime();
 
         let records = await dataIdentifier.queryUsersFromLearnerRecords();

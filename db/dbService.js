@@ -37,10 +37,10 @@ const updateCandidateTable = "UPDATE db_archiver.candidate_record SET ";
 
 var dbHandler = {
     printConfigs: () => {
-        console.log("config_mysql_lr            => " + JSON.stringify(config_mysql_lr, null, 2));
-        console.log("config_mysql_target        => " + JSON.stringify(config_mysql_target, null, 2));
-        console.log("config_mysql_registry      => " + JSON.stringify(config_mysql_registry, null, 2));
-        console.log("MONGODB_CONNECTION_OPTIONS => " + JSON.stringify(cosmos_src_connection_string, null, 2));
+        console.info("config_mysql_lr            => " + JSON.stringify(config_mysql_lr, null, 2));
+        console.info("config_mysql_target        => " + JSON.stringify(config_mysql_target, null, 2));
+        console.info("config_mysql_registry      => " + JSON.stringify(config_mysql_registry, null, 2));
+        console.info("MONGODB_CONNECTION_OPTIONS => " + JSON.stringify(cosmos_src_connection_string, null, 2));
     },
     getConnection: async () => {
         try{
@@ -87,17 +87,18 @@ var dbHandler = {
             await con.connect();
             var createTable = `CREATE SCHEMA IF NOT EXISTS db_archiver;
                 USE db_archiver;
-                DROP TABLE IF EXISTS tasks_registry;
                 CREATE TABLE IF NOT EXISTS tasks_registry(
                 id int primary key,
                 name varchar(50) not null,
                 start_time DATETIME,
                 elapsed_seconds varchar(50),
                 status varchar(50) not null
-            ) ENGINE=InnoDB`;
+            ) ENGINE=InnoDB;
+            DROP TABLE IF EXISTS tasks_registry_prev;
+            CREATE TABLE tasks_registry_prev AS SELECT * FROM tasks_registry;
+            TRUNCATE TABLE tasks_registry;`;
             await con.query(createTable);
             createTable = `USE db_archiver;
-                DROP TABLE IF EXISTS candidate_record;
                 CREATE TABLE IF NOT EXISTS candidate_record(
                 user_id varchar(50) primary key,
                 updated_at DATETIME,
@@ -107,7 +108,10 @@ var dbHandler = {
                 deleted_count BIGINT,
                 time_completed DATETIME
             ) ENGINE=InnoDB;
-                CREATE INDEX candidate_record_updated_at_idx ON candidate_record(updated_at DESC);`;
+                CREATE INDEX candidate_record_updated_at_idx ON candidate_record(updated_at DESC);
+                DROP TABLE IF EXISTS candidate_record_prev;
+                CREATE TABLE candidate_record_prev AS SELECT * FROM candidate_record;
+                TRUNCATE TABLE candidate_record;`;
             await con.query(createTable);
             await con.commit();
         }catch(err){
@@ -120,7 +124,7 @@ var dbHandler = {
         try{
             var con = await dbHandler.getConnection();
             await con.connect();
-            await con.query('REPLACE INTO db_archiver.tasks_registry(id, name, status) VALUES ?', [_records]);
+            await con.query('REPLACE INTO db_archiver.tasks_registry(id, name, start_time, elapsed_seconds, status) VALUES ?', [_records]);
             await con.commit();
         }catch(err){
             throw err;

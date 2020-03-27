@@ -1,7 +1,5 @@
-const appInsights = require('applicationinsights');
 const scheduler = require('./scheduler.js');
 const tasks = require('./tasks-wrapper.js');
-
 const app = require('express')();
 const APP_HTTP_PORT = 8080;
 
@@ -34,39 +32,55 @@ let loadEnvVariables = () => {
   }
 }
 
+let updateTasksList = (_jobref) => {
+  jobs.push(_jobref);
+  scheduler.updateTasksList(_jobref);
+}
+
 let callback = (taskName) => {
-  jobs.forEach(job => {
+  for (const job of jobs){
     
-    if ( job.id === taskName){
-      scheduler.stopSchedule(job.task);
+    if ( job.id === taskName && null !== job.task ){
+      scheduler.stopSchedule(job);
+      jobs.splice(jobs.indexOf(job), 1);
 
       if (job.id === "DataIdentifier"){
         let _schedule = scheduler.getSchedule(true);
         let job = scheduler.createSchedule(_schedule, function(){
           tasks.DataTransfer(_schedule, callback);
-        });  
-        jobs.push({"id": "DataTransfer", "task": job});
+        });
+        updateTasksList({"id": "DataTransfer", "task": job});  
+      }else if (job.id === "DataTransfer"){
+        resetSchedule();
       }
     }
-  });
+  }
+}
+
+let resetSchedule = () => {
+  jobs = [];
+  startSchedule();
 }
 
 let startSchedule = () => {
-  tasks.prepare("DataIdentifier");
+  if (jobs.length === 0){
+    tasks.prepare("DataIdentifier");
 
-  let _schedule = scheduler.getSchedule();
-  let job = scheduler.createSchedule(_schedule, function(){
-    tasks.DataIdentifier(_schedule, callback);
-  });
+    let _schedule = scheduler.getSchedule();
+    let job = scheduler.createSchedule(_schedule, function(){
+      tasks.DataIdentifier(_schedule, callback);
+    });
   
-  jobs.push({"id": "DataIdentifier", "task": job});
+    scheduler.runTimeOutTask(resetSchedule);
+    updateTasksList({"id": "DataIdentifier", "task": job});
+  } 
 }
 
 app.get('/', (req, res) => {
   res.status(200).json({"message": APP_NAME + " said OK"});
 });
 
-app.listen(APP_HTTP_PORT, () => console.log(
+app.listen(APP_HTTP_PORT, () => console.info(
   APP_NAME + " is listening on port " + APP_HTTP_PORT)
 );
 

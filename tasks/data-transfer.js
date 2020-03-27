@@ -12,7 +12,7 @@ const _COMPLETED_ = "COMPLETED";
 const _ERROR_ = "ERROR";
 const _SKIPPED_ = "SKIPPED";
 const DELETE_BATCH_SIZE = process.env.STATEMENTS_DELETE_BATCH_SIZE || 100;
-console.log("using DELETE_BATCH_SIZE " + DELETE_BATCH_SIZE);
+console.info("using DELETE_BATCH_SIZE " + DELETE_BATCH_SIZE);
 
 let dataTransfer = {
     getCandidates: async () => {
@@ -131,17 +131,17 @@ let dataTransfer = {
     printJobStatus: (
         usersCount, docsFound, docsCopied, docsReplaced, docsDeleted, 
         transferStarted, isTransferSuccessful) => {
-        console.log("learner records FOUND : " + ((null !== usersCount   && usersCount   > 0)? usersCount: 0));
-        console.log("statements FOUND      : " + ((null !== docsFound    && docsFound    > 0)? docsFound:  0));
-        console.log("statements COPIED     : " + ((null !== docsCopied   && docsCopied   > 0)? docsCopied: 0));
-        console.log("statements REPLACED   : " + ((null !== docsReplaced && docsReplaced > 0)? docsReplaced: 0));
-        console.log("statements DELETED    : " + ((null !== docsDeleted  && docsDeleted  > 0)? docsDeleted:0));
-        console.log("Transfer status       : " + (
+        console.info("learner records FOUND : " + ((null !== usersCount   && usersCount   > 0)? usersCount: 0));
+        console.info("statements FOUND      : " + ((null !== docsFound    && docsFound    > 0)? docsFound:  0));
+        console.info("statements COPIED     : " + ((null !== docsCopied   && docsCopied   > 0)? docsCopied: 0));
+        console.info("statements REPLACED   : " + ((null !== docsReplaced && docsReplaced > 0)? docsReplaced: 0));
+        console.info("statements DELETED    : " + ((null !== docsDeleted  && docsDeleted  > 0)? docsDeleted:0));
+        console.info("Transfer status       : " + (
             (transferStarted && isTransferSuccessful || !transferStarted? "Success" : "Failed")
         ));
     },
     execute: async () => {
-        console.log("DataTransfer task is running....");
+        console.info("DataTransfer task is running....");
         let startTime = process.hrtime();
         var isTransferSuccessful = true;
         var transferStarted = false;
