@@ -154,9 +154,6 @@ let dataTransfer = {
 
         users = await dataTransfer.getCandidates();
 
-        let queryEndTime = process.hrtime(startTime);
-        console.info("Query for candidate records took: " + queryEndTime[0] + "." + queryEndTime[1] + " seconds.");
-
         if (null !== users && users.length > 0){
             usersCount = users.length;
             var transferStarted = true;
