@@ -108,9 +108,10 @@ var dbHandler = {
                 deleted_count BIGINT,
                 time_completed DATETIME
             ) ENGINE=InnoDB;
-            DROP TABLE IF EXISTS candidate_record_prev;
-            CREATE TABLE candidate_record_prev AS SELECT * FROM candidate_record;
-            TRUNCATE TABLE candidate_record;`;
+                CREATE INDEX candidate_record_updated_at_idx ON candidate_record(updated_at DESC);
+                DROP TABLE IF EXISTS candidate_record_prev;
+                CREATE TABLE candidate_record_prev AS SELECT * FROM candidate_record;
+                TRUNCATE TABLE candidate_record;`;
             await con.query(createTable);
             await con.commit();
         }catch(err){

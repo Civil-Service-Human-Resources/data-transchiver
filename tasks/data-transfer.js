@@ -2,7 +2,7 @@ const db = require('../db/dbService.js');
 const moment = require('moment');
 const md5 = require('md5');
 
-const selectCandidateRecords = `select distinct(user_id) user_id, DATE_FORMAT(max(updated_at), '%Y-%m-%dT%TZ') updated_at 
+const selectCandidateRecords = `select user_id, DATE_FORMAT(max(updated_at), '%Y-%m-%dT%TZ') updated_at 
 from db_archiver.candidate_record 
 where user_id <> ''
 group by user_id
@@ -153,6 +153,9 @@ let dataTransfer = {
         var docsDeleted = 0;
 
         users = await dataTransfer.getCandidates();
+
+        let queryEndTime = process.hrtime(startTime);
+        console.info("Query for candidate records took: " + queryEndTime[0] + "." + queryEndTime[1] + " seconds.");
 
         if (null !== users && users.length > 0){
             usersCount = users.length;
