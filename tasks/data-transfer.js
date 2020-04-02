@@ -17,7 +17,7 @@ console.info("using DELETE_BATCH_SIZE " + DELETE_BATCH_SIZE);
 let dataTransfer = {
     getCandidates: async () => {
         try{
-            var client = await dbHandler.getConnection();
+            var client = await db.getConnection();
             await client.connect();
             let results = await db.queryRecords(
                 selectCandidateRecords,
@@ -31,7 +31,7 @@ let dataTransfer = {
         }catch(err){
             throw err;
         }finally{
-            await dbHandler.disconnect(client);
+            await db.disconnect(client);
         }
     },
     prepareForDelete: (docs) => {
@@ -86,7 +86,7 @@ let dataTransfer = {
                 useUnifiedTopology: true,
                 useNewUrlParser: true
             });
-            var mySqlClient = await dbHandler.getConnectionToTarget();
+            var mySqlClient = await db.getConnectionToTarget();
             await mySqlClient.connect();
 
             for (const user of users) {
