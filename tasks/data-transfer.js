@@ -14,6 +14,8 @@ const _SKIPPED_ = "SKIPPED";
 const DELETE_BATCH_SIZE = process.env.STATEMENTS_DELETE_BATCH_SIZE || 100;
 console.info("using DELETE_BATCH_SIZE " + DELETE_BATCH_SIZE);
 
+const MongoClient = mongodb.MongoClient;
+
 let dataTransfer = {
     getCandidates: async () => {
         try{
