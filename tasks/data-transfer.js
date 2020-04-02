@@ -81,12 +81,14 @@ let dataTransfer = {
         var statementsDeleted, statementsDeleted_total = 0;
         var statementsReplaced, statementsReplaced_total = 0;
 
+        let mySqlClient, mongoClient;
+
         try {
-            var mongoClient = await MongoClient.connect(cosmos_src_connection_string, {
+            mongoClient = await MongoClient.connect(cosmos_src_connection_string, {
                 useUnifiedTopology: true,
                 useNewUrlParser: true
             });
-            var mySqlClient = await db.getConnectionToTarget();
+            mySqlClient = await db.getConnectionToTarget();
             await mySqlClient.connect();
 
             for (const user of users) {
