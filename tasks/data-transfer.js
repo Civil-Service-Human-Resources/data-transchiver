@@ -17,6 +17,9 @@ console.info("using DELETE_BATCH_SIZE " + DELETE_BATCH_SIZE);
 
 const MongoClient = mongodb.MongoClient;
 
+const MONGODB_CONNECTION_OPTIONS = "/&retrywrites=false&keepAlive=true&poolSize=10&autoReconnect=true&socketTimeoutMS=60000&connectTimeoutMS=5000";
+const cosmos_src_connection_string  = process.env.COSMOS_SRC_CONNECTION_STRING + MONGODB_CONNECTION_OPTIONS;
+
 let dataTransfer = {
     getCandidates: async () => {
         try{
