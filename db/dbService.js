@@ -99,6 +99,7 @@ var dbHandler = {
             TRUNCATE TABLE tasks_registry;`;
             await con.query(createTable);
             createTable = `USE db_archiver;
+                DROP TABLE IF EXISTS candidate_record;
                 CREATE TABLE IF NOT EXISTS candidate_record(
                 user_id varchar(50) primary key,
                 updated_at DATETIME,
@@ -110,8 +111,7 @@ var dbHandler = {
             ) ENGINE=InnoDB;
                 CREATE INDEX candidate_record_updated_at_idx ON candidate_record(updated_at DESC);
                 DROP TABLE IF EXISTS candidate_record_prev;
-                CREATE TABLE candidate_record_prev AS SELECT * FROM candidate_record;
-                TRUNCATE TABLE candidate_record;`;
+                CREATE TABLE candidate_record_prev AS SELECT * FROM candidate_record;`;
             await con.query(createTable);
             await con.commit();
         }catch(err){
