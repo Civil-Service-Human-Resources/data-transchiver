@@ -1,6 +1,7 @@
 const db = require('../db/dbService.js');
 const moment = require('moment');
 const md5 = require('md5');
+const mongodb = require('mongodb');
 
 const selectCandidateRecords = `select distinct(user_id) user_id, DATE_FORMAT(max(updated_at), '%Y-%m-%dT%TZ') updated_at 
 from db_archiver.candidate_record 
