@@ -34,7 +34,7 @@ let dataIdentifier = {
         let startTime = process.hrtime();
 
         let records = await dataIdentifier.queryUsersFromLearnerRecords();
-        if (records !== null){
+        if (records !== null) {
             dataIdentifier.proccessCandidateRecords(records);
             console.log("Number of records: " + records.length);
         }
