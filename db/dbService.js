@@ -98,7 +98,8 @@ var dbHandler = {
             CREATE TABLE tasks_registry_prev AS SELECT * FROM tasks_registry;
             TRUNCATE TABLE tasks_registry;`;
             await con.query(createTable);
-            var createIndexAddingProcedure = `DROP PROCEDURE IF EXISTS csi_add_index;
+            var createIndexAddingProcedure = `USE db_archiver;
+                DROP PROCEDURE IF EXISTS csi_add_index;
                 CREATE PROCEDURE csi_add_index(in theTable varchar(128), in theIndexName varchar(128), in theIndexColumns varchar(128)  )
                 BEGIN
                     IF((SELECT COUNT(*) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = theTable AND index_name = theIndexName)  = 0) THEN
