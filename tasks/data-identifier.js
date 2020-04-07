@@ -12,21 +12,31 @@ let dataIdentifier = {
             selectUsersFromLearnerRecords
         );
     },
-    populateCandidateRecords: async (query) => {
-        return await db.insertIntoCandidateRecords(query);
+    populateCandidateRecords: async (query, con) => {
+        return await db.insertIntoCandidateRecords(query, con);
+    },
+    proccessCandidateRecords: async (records) => {
+        try {
+            var con = await db.getConnection();
+            await con.connect();
+            for (const record of records) {
+                await dataIdentifier.populateCandidateRecords([[record.user_id,  record.updated_at]], con);
+                await con.commit();
+            }
+        } catch (err){
+            throw err;
+        } finally {
+            await db.disconnect(con);
+        }
     },
     execute: async () => {
         console.info("DataIdentifier task is running.....");
         let startTime = process.hrtime();
 
         let records = await dataIdentifier.queryUsersFromLearnerRecords();
-        
-        if ( null !== records ){
-            for( const record of records) {
-                await dataIdentifier.populateCandidateRecords([ 
-                    [record.user_id,  record.updated_at]
-                ]);
-            }
+        if (records !== null) {
+            await dataIdentifier.proccessCandidateRecords(records);
+            console.log("Number of records: " + records.length);
         }
         endTime = process.hrtime(startTime);
         endTimeMS = endTime[0] + "." + endTime[1];
