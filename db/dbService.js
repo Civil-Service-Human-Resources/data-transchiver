@@ -98,6 +98,18 @@ var dbHandler = {
             CREATE TABLE tasks_registry_prev AS SELECT * FROM tasks_registry;
             TRUNCATE TABLE tasks_registry;`;
             await con.query(createTable);
+            var createIndexAddingProcedure = `USE db_archiver;
+                DROP PROCEDURE IF EXISTS csi_add_index;
+                CREATE PROCEDURE csi_add_index(in theTable varchar(128), in theIndexName varchar(128), in theIndexColumns varchar(128)  )
+                BEGIN
+                    IF((SELECT COUNT(*) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = theTable AND index_name = theIndexName)  = 0) THEN
+                        SET @s = CONCAT('CREATE INDEX ' , theIndexName , ' ON ' , theTable, '(', theIndexColumns, ')');
+                        PREPARE stmt FROM @s;
+                        EXECUTE stmt;
+                    END IF;
+                END;`;
+            await con.query(createIndexAddingProcedure);
+            await con.commit();
             createTable = `USE db_archiver;
                 CREATE TABLE IF NOT EXISTS candidate_record(
                 user_id varchar(50) primary key,
@@ -108,9 +120,9 @@ var dbHandler = {
                 deleted_count BIGINT,
                 time_completed DATETIME
             ) ENGINE=InnoDB;
-            DROP TABLE IF EXISTS candidate_record_prev;
-            CREATE TABLE candidate_record_prev AS SELECT * FROM candidate_record;
-            TRUNCATE TABLE candidate_record;`;
+                CALL csi_add_index('candidate_record', 'candidate_record_updated_at_idx', 'updated_at DESC');
+                DROP TABLE IF EXISTS candidate_record_prev;
+                CREATE TABLE candidate_record_prev AS SELECT * FROM candidate_record;`;
             await con.query(createTable);
             await con.commit();
         }catch(err){

@@ -1,6 +1,6 @@
 const db = require('../db/dbService.js');
 
-const selectUsersFromLearnerRecords = `select distinct(user_id) user_id, max(updated_at) updated_at 
+const selectUsersFromLearnerRecords = `select user_id, max(updated_at) updated_at 
 from learner_record.module_record 
 where user_id <> ''
 group by user_id
@@ -34,9 +34,9 @@ let dataIdentifier = {
         let startTime = process.hrtime();
 
         let records = await dataIdentifier.queryUsersFromLearnerRecords();
-        if (records !== null){
-            dataIdentifier.proccessCandidateRecords(records);
-            console.log("Processed records: " + records.length);
+        if (records !== null) {
+            await dataIdentifier.proccessCandidateRecords(records);
+            console.log("Number of records: " + records.length);
         }
         endTime = process.hrtime(startTime);
         endTimeMS = endTime[0] + "." + endTime[1];
