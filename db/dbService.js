@@ -1,6 +1,4 @@
 const dbUtil = require('./dbutil.js');
-const mongodb = require('mongodb');
-const MongoClient = mongodb.MongoClient;
 
 const config_mysql_lr = {
     host     : process.env.TDS_MYSQL_LEARNER_RECORD_DB_HOST,
