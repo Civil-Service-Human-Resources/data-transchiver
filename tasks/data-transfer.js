@@ -17,8 +17,7 @@ console.info("using DELETE_BATCH_SIZE " + DELETE_BATCH_SIZE);
 
 const MongoClient = mongodb.MongoClient;
 
-const MONGODB_CONNECTION_OPTIONS = "/&retrywrites=false&keepAlive=true&poolSize=10&autoReconnect=true&socketTimeoutMS=60000&connectTimeoutMS=5000";
-const cosmos_src_connection_string  = process.env.COSMOS_SRC_CONNECTION_STRING + MONGODB_CONNECTION_OPTIONS;
+const dbCredentials = require('../constants/dbCredentials.js');
 
 let dataTransfer = {
     getCandidates: async () => {
@@ -90,7 +89,7 @@ let dataTransfer = {
         let mySqlClient, mongoClient;
 
         try {
-            mongoClient = await MongoClient.connect(cosmos_src_connection_string, {
+            mongoClient = await MongoClient.connect(dbCredentials.cosmos_src_connection_string, {
                 useUnifiedTopology: true,
                 useNewUrlParser: true
             });
