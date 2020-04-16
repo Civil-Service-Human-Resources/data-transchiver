@@ -2,6 +2,7 @@ const db = require('../db/dbService.js');
 const moment = require('moment');
 const md5 = require('md5');
 const mongodb = require('mongodb');
+const dbCredentials = require('../constants/dbCredentials.js');
 
 const selectCandidateRecords = `select user_id, DATE_FORMAT(max(updated_at), '%Y-%m-%dT%TZ') updated_at 
 from db_archiver.candidate_record 
@@ -16,8 +17,6 @@ const DELETE_BATCH_SIZE = process.env.STATEMENTS_DELETE_BATCH_SIZE || 100;
 console.info("using DELETE_BATCH_SIZE " + DELETE_BATCH_SIZE);
 
 const MongoClient = mongodb.MongoClient;
-
-const dbCredentials = require('../constants/dbCredentials.js');
 
 let dataTransfer = {
     getCandidates: async () => {
