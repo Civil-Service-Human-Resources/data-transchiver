@@ -12,7 +12,7 @@ var dbHandler = {
     },
     getConnection: async () => {
         try{
-            let con = dbUtil.getMysql(config_mysql_registry);
+            let con = dbUtil.getMysql(dbCredentials.config_mysql_registry);
             return con;
         }catch(err){
             throw err;
@@ -20,7 +20,7 @@ var dbHandler = {
     },
     getConnectionToTarget: async () => {
         try{
-            let con = dbUtil.getMysql(config_mysql_target);
+            let con = dbUtil.getMysql(dbCredentials.config_mysql_target);
             return con;
         }catch(err){
             throw err;
@@ -28,7 +28,7 @@ var dbHandler = {
     },
     getConnectionToLR: async () => {
         try{
-            let con = dbUtil.getMysql(config_mysql_lr);
+            let con = dbUtil.getMysql(dbCredentials.config_mysql_lr);
             return con;
         }catch(err){
             throw err;
@@ -36,7 +36,7 @@ var dbHandler = {
     },
     getConnectionToHistoryDB: async () => {
         try{
-            let con = dbUtil.getMysql(config_mysql_history);
+            let con = dbUtil.getMysql(dbCredentials.config_mysql_history);
             return con;
         }catch(err){
             throw err;
@@ -173,7 +173,7 @@ var dbHandler = {
     deleteFromCosmos: async (docsArr, client) => {
         let db;
         db = client.db("admin");
-            return await db.collection("statements")
+        return await db.collection("statements")
                 .deleteMany({'_id':{'$in':docsArr}});
     },
     copyToTargetMysql: async (_records, client) => {
