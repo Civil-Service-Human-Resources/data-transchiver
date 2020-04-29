@@ -123,7 +123,7 @@ let dataTransfer = {
                     await db.updateNumOfRecordsCopied(user.user_id, statementsCopied, mySqlClient);
 
                     if (statementsCopied === statementsFound) {
-                        await db.updateCopyStatus(user.user_id, _COMPLETED_);
+                        await db.updateCopyStatus(user.user_id, _COMPLETED_, mySqlClient);
 
                         statementsDeleted += await dataTransfer.deleteFromSource(docs, mongoClient);
                         statementsDeleted_total += statementsDeleted;
