@@ -27,5 +27,5 @@ module.exports = Object.freeze({
         }
     },
     MONGODB_CONNECTION_OPTIONS: "/&retrywrites=false&keepAlive=true&poolSize=10&autoReconnect=true&socketTimeoutMS=60000&connectTimeoutMS=5000",
-    cosmos_src_connection_string: process.env.COSMOS_SRC_CONNECTION_STRING + MONGODB_CONNECTION_OPTIONS
+    cosmos_src_connection_string: process.env.COSMOS_SRC_CONNECTION_STRING + dbCredentials.MONGODB_CONNECTION_OPTIONS
 });
