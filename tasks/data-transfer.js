@@ -150,8 +150,8 @@ let dataTransfer = {
         } catch (err) {
             throw err
         } finally {
-            db.disconnect(mongoClient);
-            db.disconnect(mySqlClient);
+            await db.disconnect(mongoClient);
+            await db.disconnect(mySqlClient);
         }
         return [
             statementsFound_total, statementsCopied_total,
