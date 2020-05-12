@@ -1,50 +1,18 @@
 const dbUtil = require('./dbutil.js');
-const mongodb = require('mongodb');
-const MongoClient = mongodb.MongoClient;
-
-const config_mysql_lr = {
-    host     : process.env.TDS_MYSQL_LEARNER_RECORD_DB_HOST,
-    user     : process.env.TDS_MYSQL_LEARNER_RECORD_DB_USER,
-    password : process.env.TDS_MYSQL_LEARNER_RECORD_DB_PWD,
-    multipleStatements: true,
-    ssl: {
-        rejectUnauthorized: false
-    }
-};
-const config_mysql_target = {
-    host     : process.env.TDS_MYSQL_HISTORY_DB_HOST,
-    user     : process.env.TDS_MYSQL_HISTORY_DB_USER,
-    password : process.env.TDS_MYSQL_HISTORY_DB_PWD,
-    multipleStatements: true,
-    ssl: {
-        rejectUnauthorized: false
-    }
-};
-const config_mysql_registry = {
-    host     : process.env.TDS_MYSQL_PROC_REGISTRY_HOST,
-    user     : process.env.TDS_MYSQL_PROC_REGISTRY_DB_USER,
-    password : process.env.TDS_MYSQL_PROC_REGISTRY_DB_PWD,
-    multipleStatements: true,
-    ssl: {
-        rejectUnauthorized: false
-    }
-};
-
-const MONGODB_CONNECTION_OPTIONS = "/&retrywrites=false&keepAlive=true&poolSize=10&autoReconnect=true&socketTimeoutMS=60000&connectTimeoutMS=5000";
-const cosmos_src_connection_string  = process.env.COSMOS_SRC_CONNECTION_STRING + MONGODB_CONNECTION_OPTIONS;
+const dbCredentials = require('../constants/dbCredentials.js');
 
 const updateCandidateTable = "UPDATE db_archiver.candidate_record SET ";
 
 var dbHandler = {
     printConfigs: () => {
-        console.info("config_mysql_lr            => " + JSON.stringify(config_mysql_lr, null, 2));
-        console.info("config_mysql_target        => " + JSON.stringify(config_mysql_target, null, 2));
-        console.info("config_mysql_registry      => " + JSON.stringify(config_mysql_registry, null, 2));
-        console.info("MONGODB_CONNECTION_OPTIONS => " + JSON.stringify(cosmos_src_connection_string, null, 2));
+        console.info("config_mysql_lr            => " + JSON.stringify(dbCredentials.config_mysql_lr, null, 2));
+        console.info("config_mysql_target        => " + JSON.stringify(dbCredentials.config_mysql_target, null, 2));
+        console.info("config_mysql_registry      => " + JSON.stringify(dbCredentials.config_mysql_registry, null, 2));
+        console.info("MONGODB_CONNECTION_OPTIONS => " + JSON.stringify(dbCredentials.cosmos_src_connection_string, null, 2));
     },
     getConnection: async () => {
         try{
-            let con = dbUtil.getMysql(config_mysql_registry);
+            let con = dbUtil.getMysql(dbCredentials.config_mysql_registry);
             return con;
         }catch(err){
             throw err;
@@ -52,7 +20,7 @@ var dbHandler = {
     },
     getConnectionToTarget: async () => {
         try{
-            let con = dbUtil.getMysql(config_mysql_target);
+            let con = dbUtil.getMysql(dbCredentials.config_mysql_target);
             return con;
         }catch(err){
             throw err;
@@ -60,7 +28,7 @@ var dbHandler = {
     },
     getConnectionToLR: async () => {
         try{
-            let con = dbUtil.getMysql(config_mysql_lr);
+            let con = dbUtil.getMysql(dbCredentials.config_mysql_lr);
             return con;
         }catch(err){
             throw err;
@@ -68,7 +36,7 @@ var dbHandler = {
     },
     getConnectionToHistoryDB: async () => {
         try{
-            let con = dbUtil.getMysql(config_mysql_history);
+            let con = dbUtil.getMysql(dbCredentials.config_mysql_history);
             return con;
         }catch(err){
             throw err;
@@ -143,44 +111,41 @@ var dbHandler = {
             await dbHandler.disconnect(con);
         }
     },
-    insertIntoCandidateRecords: async (_records, con) => {
-        await con.query('REPLACE INTO db_archiver.candidate_record(user_id, updated_at) VALUES ?', [_records]);
+    insertIntoCandidateRecords: async (_records, client) => {
+        await client.query('REPLACE INTO db_archiver.candidate_record(user_id, updated_at) VALUES ?', [_records]);
     },
-    queryRecords: async (query) => {
-        try{
-            var con = await dbHandler.getConnection();
-            await con.connect();
-            var records = await con.query(query);
+    queryRecords: async (query, client) => {
+            var records = await client.query(query);
             return records;
-        }catch(err){
-            throw err;
-        }finally{
-            await dbHandler.disconnect(con);
-        }
     },
-    updateCopyStatus: async (_userId, _status) => {
+    updateCopyStatus: async (_userId, _status, client) => {
         await dbHandler.queryRecords(
-            updateCandidateTable + "copy_status = '" + _status + "' WHERE user_id = '" + _userId + "'"
+            updateCandidateTable + "copy_status = '" + _status + "' WHERE user_id = '" + _userId + "'",
+            client
         );
     },
-    updateDeleteStatus: async (_userId, _status) => {
+    updateDeleteStatus: async (_userId, _status, client) => {
         await dbHandler.queryRecords(
-            updateCandidateTable + "delete_status = '" + _status + "' WHERE user_id = '" + _userId + "'"
+            updateCandidateTable + "delete_status = '" + _status + "' WHERE user_id = '" + _userId + "'",
+            client
         );
     },
-    updateNumOfRecordsCopied: async (_userId, numRecords) => {
+    updateNumOfRecordsCopied: async (_userId, numRecords, client) => {
         await dbHandler.queryRecords(
-            updateCandidateTable + "copied_count = " + numRecords + " WHERE user_id = '" + _userId + "'"
+            updateCandidateTable + "copied_count = " + numRecords + " WHERE user_id = '" + _userId + "'",
+            client
         );
     },
-    updateNumOfRecordsDeleted: async (_userId, numRecords) => {
+    updateNumOfRecordsDeleted: async (_userId, numRecords, client) => {
         await dbHandler.queryRecords(
-            updateCandidateTable + "deleted_count = " + numRecords + " WHERE user_id = '" + _userId + "'"
+            updateCandidateTable + "deleted_count = " + numRecords + " WHERE user_id = '" + _userId + "'",
+            client
         );
     },
-    updateTranferTime: async (_userId, completedAt) => {
+    updateTranferTime: async (_userId, completedAt, client) => {
         await dbHandler.queryRecords(
-            updateCandidateTable + "time_completed = '" + completedAt + "' WHERE user_id = '" + _userId + "'"
+            updateCandidateTable + "time_completed = '" + completedAt + "' WHERE user_id = '" + _userId + "'",
+            client
         );
     },
     queryFromLearnerRecords: async (query) => {
@@ -195,59 +160,29 @@ var dbHandler = {
             await dbHandler.disconnect(con);
         }
     },
-    queryFromCosmos: async (user) => {
-        let db, client;
-        try {
-            client = await MongoClient.connect(cosmos_src_connection_string,
-                { useUnifiedTopology: true, useNewUrlParser: true });
-            db = client.db("admin");
-            return await db.collection("statements")
-                .find({
-                    "statement.actor.account.name": user.user_id, 
-                    "statement.timestamp": { $lt: user.updated_at }
-                })
-                .toArray();
-        }catch(err){
-            throw err
-        } finally {
-            client.close();
-        }
+    queryFromCosmos: async (user, client) => {
+        let db;
+        db = client.db("admin");
+        return await db.collection("statements")
+            .find({
+                "statement.actor.account.name": user.user_id, 
+                "statement.timestamp": { $lt: user.updated_at }
+            })
+            .toArray();
     },
-    deleteFromCosmos: async (docsArr) => {
-        let db, client;
-        try {
-            client = await MongoClient.connect(cosmos_src_connection_string,
-                { useUnifiedTopology: true, useNewUrlParser: true });
-            db = client.db("admin");
-            try{
-                return await db.collection("statements")
-                    .deleteMany({'_id':{'$in':docsArr}});
-            }catch(err){
-                // fail silently
-            }finally {
-                client.close();
-            }
-        }catch(err){
-            throw err; 
-        }finally {
-            client.close();
-        }
+    deleteFromCosmos: async (docsArr, client) => {
+        let db;
+        db = client.db("admin");
+        return await db.collection("statements")
+                .deleteMany({'_id':{'$in':docsArr}});
     },
-    copyToTargetMysql: async (_records) => {
-        try{
-            var con = await dbHandler.getConnectionToTarget();
-            await con.connect();
-            var result = await con.query(
-                'REPLACE INTO db_archiver.statements_history(statement_hash, user_id, inserted_date, statement_date, statement) VALUES ?', 
-                [_records]
-            );
-            await con.commit();
-            return result;
-        }catch(err){
-            throw err;
-        }finally{
-            await dbHandler.disconnect(con);
-        }
+    copyToTargetMysql: async (_records, client) => {
+        var result = await client.query(
+            'REPLACE INTO db_archiver.statements_history(statement_hash, user_id, inserted_date, statement_date, statement) VALUES ?', 
+            [_records]
+        );
+        await client.commit();
+        return result;
     }
 }
 

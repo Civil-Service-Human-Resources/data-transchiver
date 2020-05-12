@@ -18,38 +18,87 @@ const Tasks = {
     reset: async () => {
         await db.createSchema();
         await db.insertRecords(_tasks);
-        await Tasks.queryAll();
+        try {
+            var client = await db.getConnection();
+            await client.connect();
+            await Tasks.queryAll(client);
+            await client.commit();
+        }catch(err){
+            throw err;
+        }finally{
+            await db.disconnect(client);
+        }
     },
     prepare: async (_taskName) => {
         // db.printConfigs();
         await Tasks.reset();
         await Tasks.updateStatus(_taskName, 'READY');
     },
-    queryAll: async () => {
+    queryAll: async (client) => {
         let results = await db.queryRecords(
-            selectFromTasksTable
+            selectFromTasksTable,
+            client
         );
         console.table([results[0], results[1]]);
     },
     queryStatus: async (_taskName) => {
-        return await db.queryRecords(
-            selectFromTasksTable + "WHERE name = '" + _taskName + "'"
-        );
+        try {
+            var client = await db.getConnection();
+            await client.connect();
+            return await db.queryRecords(
+                selectFromTasksTable + "WHERE name = '" + _taskName + "'",
+                client
+            );
+        }catch(err){
+            throw err;
+        }finally{
+            await db.disconnect(client);
+        }
     },
     updateStatus: async (_taskName, _status) => {
-        await db.queryRecords(
-            updateTasksTable + "status = '" + _status + "' WHERE name = '" + _taskName + "'"
-        );
+        try {
+            var client = await db.getConnection();
+            await client.connect();
+            await db.queryRecords(
+                updateTasksTable + "status = '" + _status + "' WHERE name = '" + _taskName + "'",
+                client
+            );
+            await client.commit();
+        }catch(err){
+            throw err;
+        }finally{
+            await db.disconnect(client);
+        }
     },
     updateElapsedTime: async (_taskName, _seconds) => {
-        await db.queryRecords(
-            updateTasksTable + "elapsed_seconds = " + _seconds + " WHERE name = '" + _taskName + "'"
-        );
+        try {
+            var client = await db.getConnection();
+            await client.connect();
+            await db.queryRecords(
+                updateTasksTable + "elapsed_seconds = " + _seconds + " WHERE name = '" + _taskName + "'",
+                client
+            );
+            await client.commit();
+        }catch(err){
+            throw err;
+        }finally{
+            await db.disconnect(client);
+        }
     },
     updateStartTime: async (_taskName, _startedAt) => {
-        await db.queryRecords(
-            updateTasksTable + "start_time = '" + _startedAt + "' WHERE name = '" + _taskName + "'"
-        );
+        try {
+            var client = await db.getConnection();
+            await client.connect();
+            await db.queryRecords(
+                updateTasksTable + "start_time = '" + _startedAt + "' WHERE name = '" + _taskName + "'",
+                client
+            );
+            await client.commit();
+        }catch(err){
+            throw err;
+        }finally{
+            await db.disconnect(client);
+        }
     },
     getTime: () => {
         return moment().format('YYYY-MM-DD HH:mm:ss');
@@ -64,6 +113,7 @@ const Tasks = {
 
             await Tasks.updateStatus(task_name, 'RUNNING');
             let timeElapsed = await dataIdentifier.execute();
+            console.log("Data identifier task finished in " + timeElapsed + " seconds.");
 
             if (Tasks.isTaskRunning(task_name)){
                 await Tasks.updateStatus(task_name, 'COMPLETED');
@@ -86,6 +136,8 @@ const Tasks = {
 
             await Tasks.updateStatus(task_name, 'RUNNING');
             let timeElapsed = await dataTransfer.execute();
+
+            console.log("Data transfer task finished in " + timeElapsed + " seconds.");
 
             if (Tasks.isTaskRunning(task_name)){
                 await Tasks.updateStatus(task_name, 'COMPLETED');
