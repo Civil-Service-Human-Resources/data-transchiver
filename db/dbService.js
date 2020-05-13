@@ -49,13 +49,6 @@ var dbHandler = {
             throw err;
         }
     },
-    release: async (con) => {
-        try{
-            await con.release();
-        }catch(err){
-            throw err;
-        }
-    },
     createSchema: async () => {
         try{
             var con = await dbHandler.getConnection();
@@ -103,7 +96,7 @@ var dbHandler = {
         }catch(err){
             throw err;
         }finally{
-            await dbHandler.release(con);
+            await dbHandler.end(con);
         }
     },
     insertRecords: async (_records) => {
@@ -115,7 +108,7 @@ var dbHandler = {
         }catch(err){
             throw err;
         }finally{
-            await dbHandler.release(con);
+            await dbHandler.end(con);
         }
     },
     insertIntoCandidateRecords: async (_records, client) => {
@@ -164,7 +157,7 @@ var dbHandler = {
         }catch(err){
             throw err;
         }finally{
-            await dbHandler.release(con);
+            await dbHandler.end(con);
         }
     },
     queryFromCosmos: async (user, client) => {

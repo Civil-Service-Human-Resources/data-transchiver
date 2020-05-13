@@ -35,7 +35,7 @@ let dataTransfer = {
         }catch(err){
             throw err;
         }finally{
-            await db.release(client);
+            await db.disconnect(client);
         }
     },
     prepareForDelete: (docs) => {
@@ -151,7 +151,7 @@ let dataTransfer = {
             throw err;
         } finally {
             await db.disconnect(mongoClient);
-            await db.release(mySqlClient);
+            await db.disconnect(mySqlClient);
         }
         return [
             statementsFound_total, statementsCopied_total,
