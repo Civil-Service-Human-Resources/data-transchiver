@@ -52,7 +52,6 @@ var dbHandler = {
     createSchema: async () => {
         try {
             var con = await dbHandler.getConnection();
-            await con.connect();
             var createTable = `CREATE SCHEMA IF NOT EXISTS db_archiver;
                 USE db_archiver;
                 CREATE TABLE IF NOT EXISTS tasks_registry(
@@ -77,7 +76,6 @@ var dbHandler = {
                     END IF;
                 END;`;
             await con.query(createIndexAddingProcedure);
-            await con.commit();
             createTable = `USE db_archiver;
                 CREATE TABLE IF NOT EXISTS candidate_record(
                 user_id varchar(50) primary key,
@@ -92,7 +90,6 @@ var dbHandler = {
                 DROP TABLE IF EXISTS candidate_record_prev;
                 CREATE TABLE candidate_record_prev AS SELECT * FROM candidate_record;`;
             await con.query(createTable);
-            await con.commit();
         }catch(err){
             throw err;
         }finally{
@@ -102,9 +99,7 @@ var dbHandler = {
     insertRecords: async (_records) => {
         try{
             var con = await dbHandler.getConnection();
-            await con.connect();
             await con.query('REPLACE INTO db_archiver.tasks_registry(id, name, start_time, elapsed_seconds, status) VALUES ?', [_records]);
-            await con.commit();
         }catch(err){
             throw err;
         }finally{
@@ -181,7 +176,6 @@ var dbHandler = {
             'REPLACE INTO db_archiver.statements_history(statement_hash, user_id, inserted_date, statement_date, statement) VALUES ?', 
             [_records]
         );
-        await client.commit();
         return result;
     }
 }

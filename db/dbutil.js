@@ -2,13 +2,14 @@ const mysql = require('mysql');
 const util = require('util');
 
 let getMysql = ( config ) => {
-    const connection = mysql.createConnection( config );
+    const pool = mysql.createPool( config );
+
+    console.log("Pool: ")
+    console.log(pool);
 
     return {
-      query: util.promisify( connection.query ).bind( connection ),
-      close: util.promisify( connection.end ).bind( connection ),
-      connect: util.promisify( connection.connect ).bind( connection ),
-      commit: util.promisify( connection.commit ).bind( connection )
+      query: util.promisify( pool.query ).bind( pool ),
+      close: util.promisify( pool.end ).bind( pool )
     };
 }
 
