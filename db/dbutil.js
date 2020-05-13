@@ -21,17 +21,19 @@ function reconnect(connection, config){
 }
 
 let getMysql = ( config ) => {
-    const connection = mysql.createConnection( config );
+    var connection = mysql.createConnection( config );
+
+    console.log("Setting connection listener: ");
 
     connection.on('error', function(error) {
-      console.log("Cannot establish a connection with the database: " + error.code);
-
       if (error.code === "PROTOCOL_ENQUEUE_AFTER_QUIT" || 
           error.code === "PROTOCOL_CONNECTION_LOST" ||
           error.code === "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR" ||
-          error.code === "PROTOCOL_ENQUEUE_HANDSHAKE_TWICE" ||
           error.code === "ECONNRESET") {
+        console.log("Cannot establish a connection with the database: " + error.code);
         connection = reconnect(connection, config);
+      } else if (error.code === "PROTOCOL_ENQUEUE_HANDSHAKE_TWICE") {
+        console.log("Connection already established");
       }
     });
 
