@@ -148,7 +148,7 @@ let dataTransfer = {
                 await db.updateTranferTime(user.user_id, moment().format('YYYY-MM-DD HH:mm:ss'), mySqlClient);
             }
         } catch (err) {
-            throw err
+            throw err;
         } finally {
             await db.disconnect(mongoClient);
             await db.disconnect(mySqlClient);

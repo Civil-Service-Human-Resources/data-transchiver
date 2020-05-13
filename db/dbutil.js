@@ -2,7 +2,7 @@ const mysql = require('mysql');
 const util = require('util');
 
 let getMysql = ( config ) => {
-    const connection = mysql.createConnection( config );
+    const connection = mysql.createPool( config );
 
     return {
       query: util.promisify( connection.query ).bind( connection ),

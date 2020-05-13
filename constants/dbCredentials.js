@@ -1,6 +1,7 @@
 let dbCredentials = {};
 
 dbCredentials.config_mysql_lr = {
+    connectionLimit : 100,
     host     : process.env.TDS_MYSQL_LEARNER_RECORD_DB_HOST,
     user     : process.env.TDS_MYSQL_LEARNER_RECORD_DB_USER,
     password : process.env.TDS_MYSQL_LEARNER_RECORD_DB_PWD,
@@ -11,6 +12,7 @@ dbCredentials.config_mysql_lr = {
 };
 
 dbCredentials.config_mysql_target = {
+    connectionLimit : 100,
     host     : process.env.TDS_MYSQL_HISTORY_DB_HOST,
     user     : process.env.TDS_MYSQL_HISTORY_DB_USER,
     password : process.env.TDS_MYSQL_HISTORY_DB_PWD,
@@ -21,6 +23,7 @@ dbCredentials.config_mysql_target = {
 };
 
 dbCredentials.config_mysql_registry = {
+    connectionLimit : 100,
     host     : process.env.TDS_MYSQL_PROC_REGISTRY_HOST,
     user     : process.env.TDS_MYSQL_PROC_REGISTRY_DB_USER,
     password : process.env.TDS_MYSQL_PROC_REGISTRY_DB_PWD,
