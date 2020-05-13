@@ -18,10 +18,8 @@ let dataIdentifier = {
     proccessCandidateRecords: async (records) => {
         try {
             var con = await db.getConnection();
-            await con.connect();
             for (const record of records) {
                 await dataIdentifier.populateCandidateRecords([[record.user_id,  record.updated_at]], con);
-                await con.commit();
             }
         } catch (err){
             throw err;
