@@ -26,7 +26,11 @@ let getMysql = ( config ) => {
     connection.on('error', function(error) {
       console.log("Cannot establish a connection with the database: " + error.code);
 
-      if (err.code === "PROTOCOL_ENQUEUE_AFTER_QUIT" || err.code === "ECONNRESET") {
+      if (error.code === "PROTOCOL_ENQUEUE_AFTER_QUIT" || 
+          error.code === "PROTOCOL_CONNECTION_LOST" ||
+          error.code === "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR" ||
+          error.code === "PROTOCOL_ENQUEUE_HANDSHAKE_TWICE" ||
+          error.code === "ECONNRESET") {
         connection = reconnect(connection, config);
       }
     });
