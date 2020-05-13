@@ -20,9 +20,7 @@ const Tasks = {
         await db.insertRecords(_tasks);
         try {
             var client = await db.getConnection();
-            await client.connect();
             await Tasks.queryAll(client);
-            await client.commit();
         }catch(err){
             throw err;
         }finally{
@@ -44,7 +42,6 @@ const Tasks = {
     queryStatus: async (_taskName) => {
         try {
             var client = await db.getConnection();
-            await client.connect();
             return await db.queryRecords(
                 selectFromTasksTable + "WHERE name = '" + _taskName + "'",
                 client
@@ -58,12 +55,10 @@ const Tasks = {
     updateStatus: async (_taskName, _status) => {
         try {
             var client = await db.getConnection();
-            await client.connect();
             await db.queryRecords(
                 updateTasksTable + "status = '" + _status + "' WHERE name = '" + _taskName + "'",
                 client
             );
-            await client.commit();
         }catch(err){
             throw err;
         }finally{
@@ -73,12 +68,10 @@ const Tasks = {
     updateElapsedTime: async (_taskName, _seconds) => {
         try {
             var client = await db.getConnection();
-            await client.connect();
             await db.queryRecords(
                 updateTasksTable + "elapsed_seconds = " + _seconds + " WHERE name = '" + _taskName + "'",
                 client
             );
-            await client.commit();
         }catch(err){
             throw err;
         }finally{
@@ -88,12 +81,10 @@ const Tasks = {
     updateStartTime: async (_taskName, _startedAt) => {
         try {
             var client = await db.getConnection();
-            await client.connect();
             await db.queryRecords(
                 updateTasksTable + "start_time = '" + _startedAt + "' WHERE name = '" + _taskName + "'",
                 client
             );
-            await client.commit();
         }catch(err){
             throw err;
         }finally{

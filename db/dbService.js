@@ -146,7 +146,6 @@ var dbHandler = {
     queryFromLearnerRecords: async (query) => {
         try{
             var con = await dbHandler.getConnectionToLR();
-            await con.connect();
             var records = await con.query(query);
             return records;
         }catch(err){
