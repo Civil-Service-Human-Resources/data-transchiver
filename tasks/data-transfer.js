@@ -18,6 +18,25 @@ console.info("using DELETE_BATCH_SIZE " + DELETE_BATCH_SIZE);
 
 const MongoClient = mongodb.MongoClient;
 
+function reconnect(mySqlClient, config){
+    console.log("New connection tentative...");
+  
+    if (mySqlClient) {
+        mySqlClient.destroy();
+    }
+  
+    var connection = db.getConnectionToTarget();
+  
+    connection.connect(function(error){
+        if (error) {
+            setTimeout(reconnect, 2000);
+        } else {
+            console.log("New connection established with the database.")
+            return connection;
+        }
+    });
+}
+
 let dataTransfer = {
     getCandidates: async () => {
         try{
@@ -85,7 +104,8 @@ let dataTransfer = {
         var statementsDeleted, statementsDeleted_total = 0;
         var statementsReplaced, statementsReplaced_total = 0;
 
-        let mySqlClient, mongoClient;
+        var mySqlClient;
+        let mongoClient;
 
         try {
             mongoClient = await MongoClient.connect(dbCredentials.cosmos_src_connection_string, {
@@ -93,6 +113,20 @@ let dataTransfer = {
                 useNewUrlParser: true
             });
             mySqlClient = await db.getConnectionToTarget();
+
+            mySqlClient.on('error', function(error) {
+                console.log("Inside error connection listener.");
+                if (error.code === "PROTOCOL_ENQUEUE_AFTER_QUIT" || 
+                    error.code === "PROTOCOL_CONNECTION_LOST" ||
+                    error.code === "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR" ||
+                    error.code === "ECONNRESET") {
+                  console.log("Cannot establish a connection with the database: " + error.code);
+                  mySqlClient = reconnect(mySqlClient, config);
+                } else if (error.code === "PROTOCOL_ENQUEUE_HANDSHAKE_TWICE") {
+                  console.log("Connection already established");
+                }
+            });
+
             await mySqlClient.connect();
 
             for (const user of users) {
