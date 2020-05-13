@@ -96,7 +96,7 @@ var dbHandler = {
         }catch(err){
             throw err;
         }finally{
-            await dbHandler.end(con);
+            await dbHandler.disconnect(con);
         }
     },
     insertRecords: async (_records) => {
@@ -108,7 +108,7 @@ var dbHandler = {
         }catch(err){
             throw err;
         }finally{
-            await dbHandler.end(con);
+            await dbHandler.disconnect(con);
         }
     },
     insertIntoCandidateRecords: async (_records, client) => {
@@ -157,7 +157,7 @@ var dbHandler = {
         }catch(err){
             throw err;
         }finally{
-            await dbHandler.end(con);
+            await dbHandler.disconnect(con);
         }
     },
     queryFromCosmos: async (user, client) => {

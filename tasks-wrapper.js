@@ -26,7 +26,7 @@ const Tasks = {
         }catch(err){
             throw err;
         }finally{
-            await db.end(client);
+            await db.disconnect(client);
         }
     },
     prepare: async (_taskName) => {
@@ -52,7 +52,7 @@ const Tasks = {
         }catch(err){
             throw err;
         }finally{
-            await db.end(client);
+            await db.disconnect(client);
         }
     },
     updateStatus: async (_taskName, _status) => {
@@ -67,7 +67,7 @@ const Tasks = {
         }catch(err){
             throw err;
         }finally{
-            await db.end(client);
+            await db.disconnect(client);
         }
     },
     updateElapsedTime: async (_taskName, _seconds) => {
@@ -82,7 +82,7 @@ const Tasks = {
         }catch(err){
             throw err;
         }finally{
-            await db.end(client);
+            await db.disconnect(client);
         }
     },
     updateStartTime: async (_taskName, _startedAt) => {
@@ -97,7 +97,7 @@ const Tasks = {
         }catch(err){
             throw err;
         }finally{
-            await db.end(client);
+            await db.disconnect(client);
         }
     },
     getTime: () => {
