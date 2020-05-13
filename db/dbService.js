@@ -12,9 +12,7 @@ var dbHandler = {
     },
     getConnection: async () => {
         try{
-            console.log("Getting connection");
             let con = dbUtil.getMysql(dbCredentials.config_mysql_registry);
-            console.log(con);
             return con;
         }catch(err){
             throw err;

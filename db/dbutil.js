@@ -21,7 +21,7 @@ function reconnect(connection, config){
 }
 
 let getMysql = ( config ) => {
-    const connection = mysql.createPool( config );
+    const connection = mysql.createConnection( config );
 
     connection.on('error', function(error) {
       console.log("Cannot establish a connection with the database: " + error.code);
