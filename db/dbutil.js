@@ -26,6 +26,7 @@ let getMysql = ( config ) => {
     console.log("Setting connection listener: ");
 
     connection.on('error', function(error) {
+      console.log("Inside error connection listener.");
       if (error.code === "PROTOCOL_ENQUEUE_AFTER_QUIT" || 
           error.code === "PROTOCOL_CONNECTION_LOST" ||
           error.code === "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR" ||
