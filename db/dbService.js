@@ -50,8 +50,10 @@ var dbHandler = {
         }
     },
     createSchema: async () => {
-        try{
+        try {
             var con = await dbHandler.getConnection();
+            console.log("Connection");
+            console.log(con);
             await con.connect();
             var createTable = `CREATE SCHEMA IF NOT EXISTS db_archiver;
                 USE db_archiver;
