@@ -26,7 +26,7 @@ let dataIdentifier = {
         } catch (err){
             throw err;
         } finally {
-            await db.disconnect(con);
+            await db.release(con);
         }
     },
     execute: async () => {
