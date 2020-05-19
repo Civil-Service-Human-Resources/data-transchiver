@@ -1,23 +1,40 @@
-### Guide - CSL data transchiver process
+# 'Data Transchiver' aka Transitory Storage job
 
-#### What the process does?
-This is a custom built node application that does the below
+### Purpose
+
+This batch job runs on a nightly basis to update learner records and archive learning experience statements recorded during the day, to constantly process and clear down the MongoDB collection used by Learning Locker to store experience statements.
+
+The LPG learning platform records learning experience statements from course materials, including data such as course started, section accessed, page scrolled, materials completed, etc. The course start and course end statements are currently the only valuable statements because this pair of statements mean a learner record should be updated demonstrating course completion for a given module.
+
+For greater context, detail on constraints using CosmosDB and reasoning behind selecting the approach of a scheduled job to make CosmosDB storage transitory rather than alternatives including data migration and repartitioning, see the Transitory Storage design memo in Confluence.
+
+
+### Main batch process
+
+This is a custom built node application that has two main execution stages
 1. Identify the candidate records (statements) from source (Cosmos DB) for archiving
-2. Move the identfied records to the target store (Mysql)
+2. Copy the identfied records to the archive store (MySQL), update the learner records (MySQL), then delete the original statements
 
 ***Note*** 
 *Move above does the copy first to the target and then deltes the same from the source following the successful copy operation.*
 
-#### Dependencies
+### Component overview
+
+![C4 Component diagram for Notification Service](diagram/transitory-storage-job-component.png)
+
+See the `diagram/` folder for diagram source in draw.io XML format
+
+
+### Dependencies
 
 You should have the following installed in the environment you're planning to test
 
-##### Core binaries
+#### Core binaries
 
 - NodeJS and NPM
 - Mysql server
 
-##### Core libraries
+#### Core libraries
 
 - express
 - mongodb
@@ -25,11 +42,11 @@ You should have the following installed in the environment you're planning to te
 - node-cron
 - applicationinsights (not integrated yet)
 
-#### How to run the node app
+### How to run the node app
 
 1. Download the code and switch to the folder `data-transchiver`
 2. Run `npm install`
-3. export the required environment variables as mentioned below
+3. Export the required environment variables as mentioned below
 4. Create the target Mysql database and the statements_history table
 ```
 CREATE DATABASE IF NOT EXISTS db_archiver;
@@ -47,31 +64,31 @@ CREATE INDEX idx_statement_date ON statements_history(statement_date);
 ```
 4. Run the app as below `node app.js`
 
-#### Environment variables
+### Environment variables
 
-##### This is for the process's meta data
+#### Transitory Storage process' meta data
 ```
 TDS_MYSQL_PROC_REGISTRY_HOST
 TDS_MYSQL_PROC_REGISTRY_DB_USER
 TDS_MYSQL_PROC_REGISTRY_DB_PWD
 ```
-##### This is of the CSL learner recrods data
+#### Learner Record data
 ```
 TDS_MYSQL_LEARNER_RECORD_DB_HOST
 TDS_MYSQL_LEARNER_RECORD_DB_USER
 TDS_MYSQL_LEARNER_RECORD_DB_PWD
 ```
-##### This is for the target history records (statements)
+#### Experience statement archive store
 ```
 TDS_MYSQL_HISTORY_DB_HOST
 TDS_MYSQL_HISTORY_DB_USER
 TDS_MYSQL_HISTORY_DB_PWD
 ```
-###### This is of the Cosmos (MongoDB) source 
+#### Learning Locker experience statement data source (CosmosDB)
 ```
 COSMOS_SRC_CONNECTION_STRING
 ```
-###### This is the schedule (cron like scheduler) for the process to kickoff. 
+#### Job Schedule (cron based)
 ```
 DATA_XFR_JOB_SCHEDULE
 ```
@@ -81,7 +98,7 @@ _for example, to run the job at 9PM every night assign the following pattern_
 export DATA_XFR_JOB_SCHEDULE="0 0 21 * * *"
 ```
 
-###### Optional environment variables
+#### Optional environment variables
 
 delete batch size for statements. 100 is a recommended number and also the default.
 ```
@@ -92,10 +109,16 @@ Runtime (cutt-off time) for the job. The default runtime has been set to 9 hrs (
 ```
 TDS_RUNTIME_IN_SECONDS
 ```
+
+## Licenses
+
+Notification Service is licensed by the MIT license, see `LICENSE` in the root folder for details. Dependent applications are licensed as according to their respective readme and license files.
+
+
 ------------
 
 
-#### Ops Guide for support staff
+### Ops Guide for support staff
 
 All sequel queries mentioned below should be run against the Mysql server that is setup for the transitory store.
 
@@ -109,7 +132,7 @@ The process creates three tables in the mysql database, and they are:
 
 The process updates the first two tables to hold the meta information while executing, and the data that is copied from the source (Cosmos MongoDB) will be stored (transferred) into the 3rd table (statements_history).
 
-The process will also create a second table for (1 and 2) above to hold the results from the last precious run so the table names will be post-fixed with the word "_prev" as below.
+The process will also create a second table for (1 and 2) above to hold the results from the previous run so the table names will be post-fixed with the word "_prev" as below.
 
 | #   |  Table Name |
 | ------------ | ------------ |
@@ -117,12 +140,12 @@ The process will also create a second table for (1 and 2) above to hold the resu
 | 6  | candidate_record_prev  |
 
 ------------
-##### FAQs
+#### FAQs
 
-###### Question (1)
+##### Question (1)
 >How do I check the progress / status of the process?
 
-###### Answer
+##### Answer
 >Run the below sequel statement against the target mysql server
 
 _replace the table name with the `_prev` post-fix if the job was run multiple times_
@@ -165,10 +188,10 @@ The process' transfer status will reflect “**Failed**” when the process has 
 
 ------------
 
-###### Question (2)
+##### Question (2)
 >How do I know if there were any errors during the transfer process?
 
-###### Answer
+##### Answer
 >Run the below query, and you will know when the ERROR count is greater than zero
 
 _replace the table name with the `_prev` post-fix if the job was run multiple times_
@@ -187,10 +210,10 @@ Example output
 
 ------------
 
-###### Question (3)
+##### Question (3)
 >How do I know the number of statements copied vs. deleted?
 
-###### Answer
+##### Answer
 >Run the below query, and you will know when the ERROR count is greater than zero
 
 _replace the table name with the `_prev` post-fix if the job was run multiple times_
