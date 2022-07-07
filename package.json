@@ -13,7 +13,7 @@
     "circular-json": "^0.5.9",
     "express": "^4.17.1",
     "md5": "^2.2.1",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "mongodb": "^3.3.4",
     "mysql": "^2.17.1",
     "node-cron": "^2.0.3",
